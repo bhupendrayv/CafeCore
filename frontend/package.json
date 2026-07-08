@@ -1,0 +1,13 @@
+{
+  "name": "cafe-management-frontend",
+  "version": "1.0.0",
+  "description": "Cafe Management System Frontend",
+  "main": "index.html",
+  "scripts": {
+    "serve": "serve .",
+    "dev": "serve . --listen 8080"
+  },
+  "devDependencies": {
+    "serve": "^14.2.6"
+  }
+}
