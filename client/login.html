@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cafe Management - Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Welcome Back</h2>
+        <form id="loginForm">
+            <div class="input-box">
+                <input type="email" id="email" placeholder="Email Address" required>
+            </div>
+            <div class="input-box">
+                <input type="password" id="password" placeholder="Password" required>
+            </div>
+            <button type="submit" class="btn">Login</button>
+        </form>
+        <div id="message"></div>
+        <div class="links">
+            Don't have an account? <a href="signup.html">Register</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const messageDiv = document.getElementById('message');
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    messageDiv.textContent = data.message;
+                    messageDiv.className = 'success';
+                    // Store token if needed
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    // Redirect to dashboard (Bonus - create a simple dummy one)
+                    setTimeout(() => {
+                        alert('Login Successful! Redirecting to dashboard...');
+                        // window.location.href = 'dashboard.html';
+                    }, 1000);
+                } else {
+                    messageDiv.textContent = data.message;
+                    messageDiv.className = 'error';
+                }
+            } catch (error) {
+                messageDiv.textContent = 'Connection error. Is the server running?';
+                messageDiv.className = 'error';
+            }
+        });
+    </script>
+</body>
+</html>
