@@ -1,4 +1,4 @@
-<![CDATA[<div align="center">
+<div align="center">
 
 # ☕ CafeCore
 
@@ -930,4 +930,3 @@ No `LICENSE` file was found in this repository. License terms are **not specifie
 **⭐ Star this repo if you found it helpful!**
 
 </div>
-]]>
