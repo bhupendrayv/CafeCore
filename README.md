@@ -465,7 +465,7 @@ erDiagram
 
     PAYMENT {
         INT payment_id PK
-        INT order_id FK_UK
+        INT order_id FK
         REAL total_amount
         TEXT payment_method
     }
