@@ -54,7 +54,7 @@ function setupAuthToggles() {
             e.preventDefault();
             loginView.classList.add('hidden');
             signupView.classList.remove('hidden');
-            if (loginTitle) loginTitle.innerText = 'Register Staff Account';
+            if (loginTitle) loginTitle.innerText = 'Create Staff Account';
         });
     }
 
@@ -64,7 +64,7 @@ function setupAuthToggles() {
             e.preventDefault();
             signupView.classList.add('hidden');
             loginView.classList.remove('hidden');
-            if (loginTitle) loginTitle.innerText = 'CafeCore Portal Login';
+            if (loginTitle) loginTitle.innerText = 'Cafe Staff Login';
         });
     }
 
@@ -114,7 +114,7 @@ function promptAdminAuth(callback) {
     }
     pendingAdminAction = callback;
     const errDiv = document.getElementById('login-error');
-    if (errDiv) errDiv.innerText = 'Admin or Manager login required for this action.';
+    if (errDiv) errDiv.innerText = 'Please log in as Admin or Manager to do this.';
     if (loginModal) loginModal.classList.remove('hidden');
 }
 
@@ -141,7 +141,7 @@ function updateMgmtAdminBanner() {
             <div class="banner-content">
                 <i class="fa-solid fa-circle-check banner-icon"></i>
                 <div>
-                    <strong>Admin Authorization Active</strong> — Full privileges enabled to Add, Edit prices, or Delete menu items.
+                    <strong>Admin Mode On</strong> — You can now add items, change prices, or delete items.
                 </div>
             </div>
             <span class="role-badge role-admin" style="font-size:0.75rem;"><i class="fa-solid fa-shield-halved"></i> Admin Mode</span>
@@ -226,7 +226,7 @@ loginBtn.addEventListener('click', async () => {
             errDiv.innerText = data.error;
         }
     } catch (err) {
-        errDiv.innerText = "Server error. Make sure backend is running.";
+        errDiv.innerText = "Cannot connect to server. Please make sure server is running.";
     }
 });
 
@@ -239,7 +239,7 @@ document.getElementById('signup-btn').addEventListener('click', async () => {
     errDiv.innerText = '';
 
     if (!name || !email || !password) {
-        errDiv.innerText = "All fields are required.";
+        errDiv.innerText = "Please fill in all fields.";
         return;
     }
 
@@ -257,7 +257,7 @@ document.getElementById('signup-btn').addEventListener('click', async () => {
             errDiv.innerText = data.error;
         }
     } catch (err) {
-        errDiv.innerText = "Server error during signup.";
+        errDiv.innerText = "Cannot connect to server. Could not create account.";
     }
 });
 
@@ -303,7 +303,7 @@ function setupNavigation() {
     if (refreshOrdersBtn) {
         refreshOrdersBtn.addEventListener('click', () => {
             loadActiveOrders();
-            showToast('🔄 Orders refreshed');
+            showToast('🔄 Orders updated');
         });
     }
 
@@ -313,7 +313,7 @@ function setupNavigation() {
             const searchInput = document.getElementById('search-payment-history');
             const searchVal = searchInput ? searchInput.value.trim() : '';
             loadPaymentHistory(searchVal);
-            showToast('🔄 Payment history refreshed');
+            showToast('🔄 Payment history updated');
         });
     }
 
@@ -414,7 +414,7 @@ async function fetchMenu() {
         renderMenu(menuItems);
     } catch (error) {
         console.error("Failed to load menu", error);
-        menuGrid.innerHTML = `<p style="color:red">Failed to connect to backend...</p>`;
+        menuGrid.innerHTML = `<p style="color:red">Could not connect to server. Please try again...</p>`;
     }
 }
 
@@ -473,7 +473,7 @@ function updateCartUI() {
         cartItems.innerHTML = `
             <div class="empty-cart">
                 <i class="fa-solid fa-basket-shopping"></i>
-                <p>Cart is empty</p>
+                <p>Your cart is empty</p>
             </div>
         `;
         cartSubtotal.innerText = '₹0.00';
@@ -518,7 +518,7 @@ function setupVoiceRecognition() {
 
     if (!('webkitSpeechRecognition' in window)) {
         console.warn("Speech API not supported in this browser.");
-        voiceBtn.title = "Voice Input Unsupported";
+        voiceBtn.title = "Voice ordering not supported in this browser";
         return;
     }
 
@@ -557,7 +557,7 @@ function processVoiceCommand(command) {
     // Basic NLP matcher "add 2 latte" or "1 espresso"
 
     // Check if checking out
-    if (command.includes('checkout') || command.includes('print bill')) {
+    if (command.includes('checkout') || command.includes('print bill') || command.includes('pay')) {
         if (cart.length > 0) checkoutBtn.click();
         return;
     }
@@ -588,11 +588,11 @@ function processVoiceCommand(command) {
 
     if (matchedItem) {
         addToCart(matchedItem, quantity);
-        // Optional synthetic voice feedback
+        // Synthetic voice feedback
         const msg = new SpeechSynthesisUtterance(`Added ${quantity} ${matchedItem.item_name}`);
         window.speechSynthesis.speak(msg);
     } else {
-        const msg = new SpeechSynthesisUtterance("Sorry, I didn't recognize that item.");
+        const msg = new SpeechSynthesisUtterance("Sorry, I could not find that item.");
         window.speechSynthesis.speak(msg);
     }
 }
@@ -617,7 +617,7 @@ function setupCustomerInputRestrictions() {
         // If not a digit 0-9, strictly block it
         if (!/^[0-9]$/.test(e.key)) {
             e.preventDefault();
-            showInputError(phoneInput, phoneErr, 'Only numeric digits (0-9) are allowed');
+            showInputError(phoneInput, phoneErr, 'Only numbers (0-9) are allowed');
         }
     });
 
@@ -627,7 +627,7 @@ function setupCustomerInputRestrictions() {
         const cleaned = original.replace(/\D/g, '').slice(0, 10);
         if (original !== cleaned) {
             e.target.value = cleaned;
-            showInputError(phoneInput, phoneErr, 'Only digits 0-9 allowed');
+            showInputError(phoneInput, phoneErr, 'Only numbers allowed (10 digits)');
         } else if (cleaned.length === 10) {
             clearInputError(phoneInput, phoneErr);
         }
@@ -642,7 +642,7 @@ function setupCustomerInputRestrictions() {
         // If not a letter or space, strictly block it
         if (!/^[a-zA-Z\s]$/.test(e.key)) {
             e.preventDefault();
-            showInputError(nameInput, nameErr, 'Only letters (A-Z, a-z) are allowed');
+            showInputError(nameInput, nameErr, 'Only letters are allowed');
         }
     });
 
@@ -687,11 +687,11 @@ function validateCustomerInputs() {
     // Validate Phone Number
     const phone = (phoneInput.value || '').trim();
     if (!phone) {
-        showInputError(phoneInput, phoneErr, 'Mobile number is required (10 digits)');
+        showInputError(phoneInput, phoneErr, 'Please enter a 10-digit phone number');
         phoneInput.focus();
         isValid = false;
     } else if (phone.length !== 10) {
-        showInputError(phoneInput, phoneErr, `Please enter a complete 10-digit mobile number (Current: ${phone.length}/10)`);
+        showInputError(phoneInput, phoneErr, `Please enter all 10 digits (You typed: ${phone.length}/10)`);
         phoneInput.focus();
         isValid = false;
     } else {
@@ -701,11 +701,11 @@ function validateCustomerInputs() {
     // Validate Customer Name
     const name = (nameInput.value || '').trim();
     if (!name) {
-        showInputError(nameInput, nameErr, 'Customer name is required (letters only)');
+        showInputError(nameInput, nameErr, 'Please enter the customer name');
         if (isValid) nameInput.focus();
         isValid = false;
     } else if (name.length < 2) {
-        showInputError(nameInput, nameErr, 'Customer name must be at least 2 letters');
+        showInputError(nameInput, nameErr, 'Name must have at least 2 letters');
         if (isValid) nameInput.focus();
         isValid = false;
     } else {
@@ -736,11 +736,11 @@ function setupPaymentSystem() {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('payment_success') === 'true') {
         const sessionId = urlParams.get('session_id') || 'STRIPE_SESSION';
-        showToast(`🎉 Stripe Hosted Payment Verified! Ref: ${sessionId.slice(0, 14)}...`);
+        showToast(`🎉 Card Payment Received! Ref: ${sessionId.slice(0, 14)}...`);
         // Clean URL params
         window.history.replaceState({}, document.title, window.location.pathname);
     } else if (urlParams.get('payment_cancelled') === 'true') {
-        showToast('⚠️ Stripe payment was cancelled by user.', 'error');
+        showToast('⚠️ Payment was cancelled.', 'error');
         window.history.replaceState({}, document.title, window.location.pathname);
     }
 }
@@ -781,7 +781,7 @@ function setupPaymentTabs() {
 
 function openPaymentModal() {
     if (cart.length === 0) {
-        alert('Cart is empty. Please add items from the menu first.');
+        alert('Your cart is empty. Please add items from the menu first.');
         return;
     }
 
@@ -796,7 +796,7 @@ function openPaymentModal() {
     // Update displayed amounts
     const amountStr = `₹${total.toFixed(2)}`;
     document.getElementById('payment-modal-amount').innerText = amountStr;
-    document.getElementById('stripe-pay-btn-text').innerText = `Pay ${amountStr} via Stripe`;
+    document.getElementById('stripe-pay-btn-text').innerText = `Pay ${amountStr} by Card`;
     document.getElementById('cash-modal-total').innerText = amountStr;
 
     // Reset Cash input
@@ -840,7 +840,7 @@ function startUpiCountdown(durationSeconds) {
         timerDisplay.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
         if (remaining <= 0) {
             clearInterval(upiCountdownInterval);
-            timerDisplay.innerText = "Expired";
+            timerDisplay.innerText = "Time Expired";
             timerDisplay.style.color = "var(--danger)";
         }
         remaining--;
@@ -872,7 +872,7 @@ function setupStripeGateway() {
         const pmId = payBtn.getAttribute('data-pm') || 'pm_card_visa';
 
         payBtn.disabled = true;
-        payBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Processing Stripe Payment...`;
+        payBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Processing card payment...`;
 
         try {
             const res = await fetch(`${API_URL}/stripe/pay-card`, {
@@ -889,20 +889,20 @@ function setupStripeGateway() {
             const data = await res.json();
 
             if (res.ok && data.success) {
-                showToast(`💳 Stripe Payment Succeeded! (${data.paymentIntentId})`);
+                showToast(`💳 Payment Successful! (${data.paymentIntentId})`);
                 closePaymentModal();
                 await createFinalOrder('Stripe Card', data.paymentIntentId);
             } else {
-                errDiv.innerText = data.error || 'Payment failed with Stripe. Please try again.';
+                errDiv.innerText = data.error || 'Payment failed. Please try again.';
                 errDiv.classList.remove('hidden');
             }
         } catch (err) {
             console.error('Stripe error:', err);
-            errDiv.innerText = 'Network error contacting Stripe server.';
+            errDiv.innerText = 'Cannot connect to payment server. Please try again.';
             errDiv.classList.remove('hidden');
         } finally {
             payBtn.disabled = false;
-            payBtn.innerHTML = `<i class="fa-solid fa-lock"></i> <span>Pay ₹${total.toFixed(2)} via Stripe</span>`;
+            payBtn.innerHTML = `<i class="fa-solid fa-lock"></i> <span>Pay ₹${total.toFixed(2)} by Card</span>`;
         }
     });
 
@@ -912,7 +912,7 @@ function setupStripeGateway() {
         const custPhone = document.getElementById('cust-phone').value || '';
 
         hostedBtn.disabled = true;
-        hostedBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Redirecting to Stripe...`;
+        hostedBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Opening payment page...`;
 
         try {
             const res = await fetch(`${API_URL}/stripe/checkout-session`, {
@@ -935,14 +935,14 @@ function setupStripeGateway() {
                 // Open Stripe Checkout in new window or redirect
                 window.location.href = data.sessionUrl;
             } else {
-                alert('Failed to launch Stripe Hosted Checkout: ' + (data.error || 'Unknown error'));
+                alert('Could not open payment page: ' + (data.error || 'Unknown error'));
             }
         } catch (err) {
             console.error(err);
-            alert('Server error launching Stripe Checkout.');
+            alert('Cannot connect to payment server.');
         } finally {
             hostedBtn.disabled = false;
-            hostedBtn.innerHTML = `<i class="fa-brands fa-stripe-s"></i> Hosted Checkout Page`;
+            hostedBtn.innerHTML = `<i class="fa-brands fa-stripe-s"></i> Pay on Stripe Page`;
         }
     });
 }
@@ -981,7 +981,7 @@ function setupUpiGateway() {
         const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
         confirmBtn.disabled = true;
-        confirmBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Verifying UPI Transfer...`;
+        confirmBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Checking UPI payment...`;
 
         try {
             const res = await fetch(`${API_URL}/payment/verify-online`, {
@@ -991,15 +991,15 @@ function setupUpiGateway() {
             });
             const data = await res.json();
 
-            showToast(`📱 UPI Payment Verified! Ref: ${data.transactionId}`);
+            showToast(`📱 UPI Payment Confirmed! Ref: ${data.transactionId}`);
             closePaymentModal();
             await createFinalOrder('UPI (QR Code)', data.transactionId);
         } catch (e) {
             console.error(e);
-            alert('Failed to verify UPI payment.');
+            alert('Could not verify UPI payment.');
         } finally {
             confirmBtn.disabled = false;
-            confirmBtn.innerHTML = `<i class="fa-solid fa-circle-check"></i> Confirm UPI Payment Received`;
+            confirmBtn.innerHTML = `<i class="fa-solid fa-circle-check"></i> I Have Received This UPI Payment`;
         }
     });
 }
@@ -1014,7 +1014,7 @@ function setupWalletGateway() {
         const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
         confirmBtn.disabled = true;
-        confirmBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Authorizing ${walletName}...`;
+        confirmBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Processing ${walletName}...`;
 
         try {
             const res = await fetch(`${API_URL}/payment/verify-online`, {
@@ -1024,15 +1024,15 @@ function setupWalletGateway() {
             });
             const data = await res.json();
 
-            showToast(`👛 ${walletName} Payment Approved! Ref: ${data.transactionId}`);
+            showToast(`👛 ${walletName} Payment Done! Ref: ${data.transactionId}`);
             closePaymentModal();
             await createFinalOrder(walletName, data.transactionId);
         } catch (e) {
             console.error(e);
-            alert('Failed to process wallet payment.');
+            alert('Could not complete wallet payment.');
         } finally {
             confirmBtn.disabled = false;
-            confirmBtn.innerHTML = `<i class="fa-solid fa-bolt"></i> Authorize & Complete Online Payment`;
+            confirmBtn.innerHTML = `<i class="fa-solid fa-bolt"></i> Complete Payment`;
         }
     });
 }
@@ -1068,7 +1068,7 @@ function setupCashGateway() {
         const change = Math.max(0, tendered - total);
 
         closePaymentModal();
-        await createFinalOrder('Cash', `Tendered: ₹${tendered.toFixed(2)}, Change: ₹${change.toFixed(2)}`);
+        await createFinalOrder('Cash', `Cash Given: ₹${tendered.toFixed(2)}, Change Returned: ₹${change.toFixed(2)}`);
     });
 }
 
@@ -1076,7 +1076,7 @@ function calculateCashChange(total, tendered) {
     const changeDisplay = document.getElementById('cash-change-display');
     const change = tendered - total;
     if (change < 0) {
-        changeDisplay.innerText = `Short: ₹${Math.abs(change).toFixed(2)}`;
+        changeDisplay.innerText = `Need more: ₹${Math.abs(change).toFixed(2)}`;
         changeDisplay.style.color = "var(--danger)";
     } else {
         changeDisplay.innerText = `₹${change.toFixed(2)}`;
@@ -1125,13 +1125,13 @@ async function createFinalOrder(paymentMethod, transactionId = '') {
             // Silently refresh analytics metrics in the background
             loadAnalytics();
 
-            showToast(`✅ Order #${data.orderId} Placed — Bill Generated!`);
+            showToast(`✅ Order #${data.orderId} Placed — Bill Ready!`);
         } else {
-            alert('Checkout failed: ' + data.error);
+            alert('Could not place order: ' + data.error);
         }
     } catch (err) {
         console.error(err);
-        alert('Server Error during checkout.');
+        alert('Cannot connect to server to place order.');
     }
 }
 
@@ -1147,21 +1147,21 @@ async function displayReceipt(orderId) {
         let html = `
             <div class="bill-brand-header">
                 <h2>☕ AURA CAFE</h2>
-                <div class="bill-brand-sub">Specialty Coffee & Artisan Roastery</div>
+                <div class="bill-brand-sub">Coffee & Cafe Kitchen</div>
                 <div class="bill-brand-sub">Connaught Place, New Delhi | Ph: +91 11-4500-2200</div>
-                <div class="bill-brand-sub" style="font-weight:700; color:#111827; margin-top:3px; letter-spacing:0.5px;">TAX INVOICE / CASH MEMO</div>
+                <div class="bill-brand-sub" style="font-weight:700; color:#111827; margin-top:3px; letter-spacing:0.5px;">TAX INVOICE / CASH BILL</div>
             </div>
 
             <div class="bill-meta-grid">
-                <div><span class="bill-meta-label">Invoice No:</span> <span class="bill-meta-val">#ORD-${data.orderId}</span></div>
+                <div><span class="bill-meta-label">Bill No:</span> <span class="bill-meta-val">#ORD-${data.orderId}</span></div>
                 <div style="text-align:right;"><span class="bill-meta-label">Date:</span> <span class="bill-meta-val">${formattedDate}</span></div>
                 <div><span class="bill-meta-label">Time:</span> <span class="bill-meta-val">${formattedTime}</span></div>
-                <div style="text-align:right;"><span class="bill-meta-label">Cashier:</span> <span class="bill-meta-val">${currentUser ? currentUser.name : 'Staff'}</span></div>
+                <div style="text-align:right;"><span class="bill-meta-label">Served by:</span> <span class="bill-meta-val">${currentUser ? currentUser.name : 'Staff'}</span></div>
                 <div class="full-span" style="border-top:1px dashed #e5e7eb; padding-top:4px; margin-top:2px;">
                     <span class="bill-meta-label">Customer Name:</span> <span class="bill-meta-val">${data.customerName}</span>
                 </div>
                 <div class="full-span">
-                    <span class="bill-meta-label">Mobile Number:</span> <span class="bill-meta-val">+91 ${data.customerPhone}</span>
+                    <span class="bill-meta-label">Phone Number:</span> <span class="bill-meta-val">+91 ${data.customerPhone}</span>
                 </div>
             </div>
 
@@ -1170,7 +1170,7 @@ async function displayReceipt(orderId) {
                     <tr>
                         <th style="width:45%;">Item</th>
                         <th style="width:15%; text-align:center;">Qty</th>
-                        <th style="width:20%; text-align:right;">Rate</th>
+                        <th style="width:20%; text-align:right;">Price</th>
                         <th style="width:20%; text-align:right;">Total</th>
                     </tr>
                 </thead>
@@ -1202,12 +1202,12 @@ async function displayReceipt(orderId) {
 
             <div class="bill-pay-badge">
                 <i class="fa-solid fa-circle-check"></i>
-                <span>PAID VIA: ${data.paymentMethod}</span>
+                <span>PAID BY: ${data.paymentMethod}</span>
             </div>
 
             <div class="bill-footer">
-                <div>Thank you for choosing Aura Cafe!</div>
-                <div>Fresh Brewed Daily | Please Visit Again</div>
+                <div>Thank you for visiting Aura Cafe!</div>
+                <div>Fresh coffee served every day | Please visit again</div>
                 <div class="bill-barcode-line">||||||||||||||||||||||||||||||</div>
             </div>
         `;
@@ -1226,7 +1226,7 @@ let allPaymentHistory = [];
 async function loadPaymentHistory(search = '') {
     const tbody = document.getElementById('payment-history-tbody');
     if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:2rem; color:var(--text-secondary);"><i class="fa-solid fa-spinner fa-spin"></i> Loading payment records...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:2rem; color:var(--text-secondary);"><i class="fa-solid fa-spinner fa-spin"></i> Loading past payments...</td></tr>';
 
     try {
         const url = search ? `${API_URL}/payments?search=${encodeURIComponent(search)}` : `${API_URL}/payments`;
@@ -1240,7 +1240,7 @@ async function loadPaymentHistory(search = '') {
         applyHistoryFilter(filter);
     } catch (err) {
         console.error('Error loading payment history:', err);
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:2rem; color:var(--danger);"><i class="fa-solid fa-circle-exclamation"></i> Error loading payment history.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:2rem; color:var(--danger);"><i class="fa-solid fa-circle-exclamation"></i> Could not load past payments.</td></tr>';
     }
 }
 
@@ -1264,7 +1264,7 @@ function applyHistoryFilter(filter = 'all') {
             <tr>
                 <td colspan="7" style="text-align:center; padding:3rem 1rem; color:var(--text-secondary);">
                     <i class="fa-solid fa-magnifying-glass" style="font-size:2rem; margin-bottom:0.6rem; opacity:0.6;"></i>
-                    <p style="margin:0;">No payments or bills found matching your search.</p>
+                    <p style="margin:0;">No payments or bills found.</p>
                 </td>
             </tr>
         `;
@@ -1315,7 +1315,7 @@ function applyHistoryFilter(filter = 'all') {
                 <strong style="color:#10b981; font-size:0.98rem;">₹${parseFloat(p.total_amount).toFixed(2)}</strong>
             </td>
             <td style="padding:0.9rem 1rem; text-align:right;">
-                <button class="btn-secondary btn-view-bill-receipt" data-order-id="${p.order_id}" style="padding:0.35rem 0.75rem; font-size:0.8rem; display:inline-flex; align-items:center; gap:0.35rem;" title="View & Print Bill Receipt">
+                <button class="btn-secondary btn-view-bill-receipt" data-order-id="${p.order_id}" style="padding:0.35rem 0.75rem; font-size:0.8rem; display:inline-flex; align-items:center; gap:0.35rem;" title="View & Print Bill">
                     <i class="fa-solid fa-receipt"></i> Bill
                 </button>
             </td>
@@ -1397,7 +1397,7 @@ async function loadAnalytics() {
             type: 'line',
             data: {
                 labels: data.trends.map(t => new Date(t.date).toLocaleDateString()),
-                datasets: [{ label: 'Daily Revenue (₹)', data: data.trends.map(t => parseFloat(t.daily_revenue)), borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.4 }]
+                datasets: [{ label: 'Daily Sales (₹)', data: data.trends.map(t => parseFloat(t.daily_revenue)), borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.4 }]
             },
             options: { scales: { y: { beginAtZero: true } } }
         });
@@ -1523,7 +1523,7 @@ async function loadActiveOrders() {
         grid.innerHTML = '';
         
         if (orders.length === 0) {
-            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: #888;">No active orders pending.</div>';
+            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: #888;">No active orders right now.</div>';
             clearInterval(trackingInterval);
             return;
         }
@@ -1545,7 +1545,7 @@ async function loadActiveOrders() {
                     ${order.items.map(i => `<li>${i.quantity}x ${i.item_name}</li>`).join('')}
                 </ul>
                 <button class="btn-primary btn-mark-delivered" style="margin-top:auto; width:100%; align-self:center;" data-order-id="${order.order_id}">
-                    <i class="fa-solid fa-check"></i> Mark Delivered
+                    <i class="fa-solid fa-check"></i> Mark as Delivered
                 </button>
             `;
             const delBtn = el.querySelector('.btn-mark-delivered');
@@ -1615,7 +1615,7 @@ function updateOrderTimers() {
             badge.innerText = '15:00';
             badge.style.color = 'var(--danger)';
 
-            showToast(`🎉 Order #${orderId} — Auto Delivered!`);
+            showToast(`🎉 Order #${orderId} marked delivered!`);
             markDelivered(orderId);
             return;
         }
@@ -1646,7 +1646,7 @@ async function markDelivered(orderId) {
             showToast(`✅ Order #${orderId} delivered!`);
             loadActiveOrders();
         } else {
-            alert('Failed to update: ' + (data.error || 'Unknown error'));
+            alert('Could not update order: ' + (data.error || 'Unknown error'));
         }
     } catch(err) {
         console.error('Error delivering order:', err);
@@ -1757,14 +1757,14 @@ function updateModalPreview() {
             const fallback = getIconForMenu(name, '');
             previewEl.src = fallback;
             if (statusEl) {
-                statusEl.innerHTML = "⚠️ This looks like a <strong>webpage link</strong>, not a direct image.<br>🔍 <em>Right-click the image → 'Copy image address'</em> and paste that instead.";
+                statusEl.innerHTML = "⚠️ This is a <strong>webpage link</strong>, not an image link.<br>🔍 <em>Right-click image → click 'Copy image address'</em> and paste it here.";
                 statusEl.style.color = "#f87171";
             }
             return;
         }
 
         if (statusEl) {
-            statusEl.innerText = "Loading image...";
+            statusEl.innerText = "Loading picture...";
             statusEl.style.color = "var(--accent-color)";
         }
         
@@ -1774,7 +1774,7 @@ function updateModalPreview() {
             if ((document.getElementById('menu-item-image').value || '').trim() === customImg) {
                 previewEl.src = customImg;
                 if (statusEl) {
-                    statusEl.innerText = "✓ Custom image loaded successfully!";
+                    statusEl.innerText = "✓ Picture loaded successfully!";
                     statusEl.style.color = "#4ade80";
                 }
             }
@@ -1785,7 +1785,7 @@ function updateModalPreview() {
                 const fallback = getIconForMenu(name, '');
                 previewEl.src = fallback;
                 if (statusEl) {
-                    statusEl.innerHTML = "⚠️ Unable to load this direct link. Right-click picture &amp; choose <em>'Copy image address'</em>.";
+                    statusEl.innerHTML = "⚠️ Could not load picture. Right-click picture &amp; choose <em>'Copy image address'</em>.";
                     statusEl.style.color = "#fbbf24";
                 }
             }
@@ -1800,11 +1800,11 @@ function updateModalPreview() {
         };
         previewEl.src = autoSrc;
 
-        if (titleEl) titleEl.innerText = name ? "Auto-Matched Photo" : "Default Photo";
+        if (titleEl) titleEl.innerText = name ? "Matched Photo" : "Default Photo";
         if (statusEl) {
             statusEl.innerText = name 
-                ? `Auto-matched for "${name}". Paste link above to override.`
-                : "Type an item name or paste an image link address.";
+                ? `Matched for "${name}". Paste link above to change.`
+                : "Type an item name or paste an image link.";
             statusEl.style.color = "var(--text-secondary)";
         }
     }
@@ -1840,11 +1840,9 @@ document.getElementById('save-menu-btn').addEventListener('click', async () => {
     const customImageVal = document.getElementById('menu-item-image').value.trim();
 
     // Determine what image URL to store:
-    // If the user pasted a URL, validate it's actually an image link (not a webpage)
     let imageUrl = '';
     if (customImageVal) {
         const resolvedFromCustom = getIconForMenu(name, customImageVal);
-        // If getIconForMenu returned the custom URL directly, it passed image validation
         const isValidImageLink = resolvedFromCustom === customImageVal
             || resolvedFromCustom === 'https:' + customImageVal.replace(/^\/\//, '');
         imageUrl = isValidImageLink ? customImageVal : getIconForMenu(name, '');
@@ -1873,23 +1871,23 @@ document.getElementById('save-menu-btn').addEventListener('click', async () => {
         const data = await res.json();
         if (data.success) {
             menuModal.classList.add('hidden');
-            showToast(id ? `✅ Item "${name}" updated successfully!` : `🎉 Item "${name}" added to Menu!`);
+            showToast(id ? `✅ Item "${name}" updated!` : `🎉 Item "${name}" added to menu!`);
             loadMenuMgmt(); // refresh mgmt table
             fetchMenu(); // refresh POS grid globally!
         } else if (res.status === 401 || res.status === 403) {
             menuModal.classList.add('hidden');
             promptAdminAuth(() => openMenuModal(id, name, price, imageUrl));
         } else {
-            alert("Error: " + (data.error || "Failed to save menu item"));
+            alert("Error: " + (data.error || "Could not save menu item"));
         }
     } catch (err) {
         console.error(err);
-        alert("Server connection error while saving menu item.");
+        alert("Cannot connect to server while saving menu item.");
     }
 });
 
 async function deleteMenuItem(id, itemName = 'item') {
-    if (!confirm(`Are you sure you want to remove "${itemName}" from the menu?`)) return;
+    if (!confirm(`Are you sure you want to delete "${itemName}" from the menu?`)) return;
     
     const token = localStorage.getItem('aura_token');
 
@@ -1908,10 +1906,10 @@ async function deleteMenuItem(id, itemName = 'item') {
         } else if (res.status === 401 || res.status === 403) {
             promptAdminAuth(() => deleteMenuItem(id, itemName));
         } else {
-            alert("Delete failed: " + (data.error || "Server error"));
+            alert("Could not delete item: " + (data.error || "Server error"));
         }
     } catch (err) {
         console.error(err);
-        alert("Server connection error while deleting menu item.");
+        alert("Cannot connect to server while deleting menu item.");
     }
 }

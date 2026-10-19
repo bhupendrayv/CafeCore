@@ -2,9 +2,9 @@
 
 # ☕ CafeCore
 
-### Full-Stack Cafe Point-of-Sale & Management System
+### Complete Cafe Billing & Management System
 
-**A production-grade POS system built for Aura Cafe — handles orders, multi-gateway payments, staff authentication, real-time kitchen tracking, menu management, and business analytics from a single browser interface.**
+**A complete POS system made for Aura Cafe — handles customer orders, card/UPI/cash payments, staff login, live kitchen tracking, menu editing, and sales reports in one web app.**
 
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Express](https://img.shields.io/badge/Express-4.x-000000?logo=express&logoColor=white)](https://expressjs.com/)
@@ -50,14 +50,14 @@
 
 ## 📖 About the Project
 
-CafeCore is a monorepo containing **two independent server applications** and **two frontend layers** that together deliver a complete cafe management experience:
+CafeCore is a full project containing **two server apps** and **two front-end apps** that work together to run a cafe:
 
 | Component | Description | Port |
 |-----------|-------------|------|
-| **`backend/`** | Primary Express server backed by **SQLite** (`better-sqlite3` in WAL mode). Serves the full SPA and exposes all business-logic APIs — orders, multi-gateway payments (Stripe, UPI, Wallets, Cash), menu CRUD, analytics, and role-based auth. | `5001` |
-| **`server/`** | Secondary Express server backed by **MySQL** (`mysql2/promise`). Implements a clean **MVC pattern** (routes → controllers → models) for a standalone staff signup/login flow. | `5000` |
-| **`frontend/`** | Vanilla JS single-page application served by `backend/`. Full POS interface, kitchen order tracker, admin menu manager, and analytics dashboard — **1,665 lines** of client-side logic. | — |
-| **`client/`** | Lightweight HTML login/signup pages served by `server/` for the MySQL auth flow. | — |
+| **`backend/`** | Main Express server using **SQLite** (`better-sqlite3`). Serves the web app and runs all cafe APIs — orders, card/UPI/cash payments, menu changes, sales reports, and staff login. | `5001` |
+| **`server/`** | Second Express server using **MySQL** (`mysql2/promise`). Runs a separate staff login and sign up flow. | `5000` |
+| **`frontend/`** | Web app served by `backend/`. Includes the full POS screen, kitchen order tracker, menu editor, and sales reports. | — |
+| **`client/`** | Simple HTML login and sign up pages served by `server/` for MySQL staff accounts. | — |
 
 ---
 

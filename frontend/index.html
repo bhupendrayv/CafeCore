@@ -17,11 +17,11 @@
                 <h1>Aura Cafe</h1>
             </div>
             <ul class="nav-links">
-                <li class="active"><a href="#" id="nav-pos"><i class="fa-solid fa-cash-register"></i> POS System</a></li>
+                <li class="active"><a href="#" id="nav-pos"><i class="fa-solid fa-cash-register"></i> Billing & POS</a></li>
                 <li><a href="#" id="nav-tracking"><i class="fa-solid fa-stopwatch"></i> Order Tracking</a></li>
                 <li><a href="#" id="nav-history"><i class="fa-solid fa-receipt"></i> Payment History</a></li>
-                <li><a href="#" id="nav-mgmt"><i class="fa-solid fa-list-ul"></i> Menu Mgmt</a></li>
-                <li><a href="#" id="nav-stats"><i class="fa-solid fa-chart-pie"></i> Analytics</a></li>
+                <li><a href="#" id="nav-mgmt"><i class="fa-solid fa-list-ul"></i> Manage Menu</a></li>
+                <li><a href="#" id="nav-stats"><i class="fa-solid fa-chart-pie"></i> Sales Reports</a></li>
             </ul>
         </nav>
 
@@ -71,7 +71,7 @@
                         
                         <div class="customer-info form-group">
                             <div class="input-field-wrap">
-                                <label for="cust-phone" class="input-label"><i class="fa-solid fa-phone"></i> Mobile Number (Digits only):</label>
+                                <label for="cust-phone" class="input-label"><i class="fa-solid fa-phone"></i> Phone Number (10 numbers only):</label>
                                 <input type="tel" id="cust-phone" placeholder="e.g. 9876543210 (10 digits)" maxlength="10" inputmode="numeric" autocomplete="off">
                                 <span id="cust-phone-err" class="input-field-err hidden">Only numbers allowed (10 digits)</span>
                             </div>
@@ -86,7 +86,7 @@
                             <!-- Cart items injected here -->
                             <div class="empty-cart">
                                 <i class="fa-solid fa-basket-shopping"></i>
-                                <p>Cart is empty</p>
+                                <p>Your cart is empty</p>
                             </div>
                         </div>
 
@@ -100,16 +100,16 @@
                                 <span id="cart-total">₹0.00</span>
                             </div>
 
-                            <label style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.8rem; display:block;">Payment Method</label>
+                            <label style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.8rem; display:block;">How to Pay</label>
                             <select id="payment-method" class="payment-select">
-                                <option value="Stripe Card">💳 Stripe Online Card</option>
+                                <option value="Stripe Card">💳 Card (Stripe Online)</option>
                                 <option value="UPI / QR Code">📱 UPI / QR Code (GPay, PhonePe)</option>
                                 <option value="Digital Wallet">👛 Wallets & Net Banking</option>
                                 <option value="Cash">💵 Cash</option>
                             </select>
 
                             <button id="checkout-btn" class="btn-primary" disabled style="display:flex; align-items:center; justify-content:center; gap:0.5rem;">
-                                <i class="fa-solid fa-lock"></i> <span>Proceed to Payment</span>
+                                <i class="fa-solid fa-lock"></i> <span>Pay Now</span>
                             </button>
                         </div>
                     </div>
@@ -120,8 +120,8 @@
             <div id="tracking-workspace" class="workspace hidden" style="overflow-y: auto; padding: 2rem;">
                 <header class="top-bar" style="padding: 0 0 1.5rem 0; border-bottom: 1px solid var(--glass-border);">
                     <div>
-                        <h2><i class="fa-solid fa-stopwatch" style="color:var(--accent-color);"></i> Live Order Tracking & Kitchen Display</h2>
-                        <p style="color:var(--text-secondary); font-size:0.9rem; margin-top:0.2rem;">Real-time queue of pending orders and preparation timers</p>
+                        <h2><i class="fa-solid fa-stopwatch" style="color:var(--accent-color);"></i> Live Order Tracking & Kitchen Screen</h2>
+                        <p style="color:var(--text-secondary); font-size:0.9rem; margin-top:0.2rem;">See pending orders and cooking timers in real time</p>
                     </div>
                     <div style="display:flex; gap:1rem; align-items:center;">
                         <button id="refresh-orders-btn" class="btn-secondary" style="padding: 0.6rem 1rem; font-size:0.9rem;">
@@ -141,13 +141,13 @@
             <div id="history-workspace" class="workspace hidden" style="overflow-y: auto; padding: 2rem;">
                 <header class="top-bar" style="padding: 0 0 1.5rem 0; border-bottom: 1px solid var(--glass-border);">
                     <div>
-                        <h2><i class="fa-solid fa-receipt" style="color:var(--accent-color);"></i> Payment & Billing History</h2>
-                        <p style="color:var(--text-secondary); font-size:0.9rem; margin-top:0.2rem;">Search transactions, check receipts by Mobile Number or Bill / Order Code</p>
+                        <h2><i class="fa-solid fa-receipt" style="color:var(--accent-color);"></i> Past Payments & Bills</h2>
+                        <p style="color:var(--text-secondary); font-size:0.9rem; margin-top:0.2rem;">Find past bills and receipts by phone number or bill number</p>
                     </div>
                     <div style="display:flex; gap:1rem; align-items:center;">
                         <div class="search-bar" style="width: 320px; padding: 0.5rem 1rem;">
                             <i class="fa-solid fa-magnifying-glass"></i>
-                            <input type="text" id="search-payment-history" placeholder="Search Mobile No, Bill #ORD-...">
+                            <input type="text" id="search-payment-history" placeholder="Search phone number or bill number...">
                         </div>
                         <button id="refresh-history-btn" class="btn-secondary" style="padding: 0.6rem 1rem; font-size:0.9rem; white-space:nowrap;">
                             <i class="fa-solid fa-rotate-right"></i> Refresh
@@ -157,7 +157,7 @@
 
                 <!-- Quick Filter / Summary Pills -->
                 <div style="display:flex; gap:1rem; align-items:center; margin-top:1.5rem; flex-wrap:wrap;">
-                    <span style="font-size:0.88rem; color:var(--text-secondary);">Filter by method:</span>
+                    <span style="font-size:0.88rem; color:var(--text-secondary);">Filter by payment type:</span>
                     <button class="btn-secondary history-filter-btn active-filter" data-filter="all" style="padding:0.35rem 0.8rem; font-size:0.8rem;">All</button>
                     <button class="btn-secondary history-filter-btn" data-filter="cash" style="padding:0.35rem 0.8rem; font-size:0.8rem;">Cash</button>
                     <button class="btn-secondary history-filter-btn" data-filter="upi" style="padding:0.35rem 0.8rem; font-size:0.8rem;">UPI</button>
@@ -173,8 +173,8 @@
                                     <th style="padding: 0.9rem 1rem;">Bill / Order No</th>
                                     <th style="padding: 0.9rem 1rem;">Date & Time</th>
                                     <th style="padding: 0.9rem 1rem;">Customer</th>
-                                    <th style="padding: 0.9rem 1rem;">Mobile No</th>
-                                    <th style="padding: 0.9rem 1rem;">Payment Method</th>
+                                    <th style="padding: 0.9rem 1rem;">Phone Number</th>
+                                    <th style="padding: 0.9rem 1rem;">How Paid</th>
                                     <th style="padding: 0.9rem 1rem;">Amount (₹)</th>
                                     <th style="padding: 0.9rem 1rem; text-align: right;">Receipt</th>
                                 </tr>
@@ -191,8 +191,8 @@
             <div id="mgmt-workspace" class="workspace hidden" style="overflow-y: auto; padding: 2rem;">
                 <header class="top-bar" style="padding: 0 0 1.5rem 0; border-bottom: 1px solid var(--glass-border);">
                     <div>
-                        <h2><i class="fa-solid fa-list-ul" style="color:var(--accent-color);"></i> Menu Management</h2>
-                        <p style="color:var(--text-secondary); font-size:0.9rem; margin-top:0.2rem;">Add, update prices, or remove items from the POS menu</p>
+                        <h2><i class="fa-solid fa-list-ul" style="color:var(--accent-color);"></i> Menu Settings</h2>
+                        <p style="color:var(--text-secondary); font-size:0.9rem; margin-top:0.2rem;">Add new items, change prices, or delete items from the menu</p>
                     </div>
                     <div style="display:flex; gap:1rem; align-items:center;">
                         <div class="search-bar" style="width: 250px; padding: 0.5rem 1rem;">
@@ -233,11 +233,11 @@
             <div id="stats-workspace" class="workspace hidden" style="overflow-y: auto; padding: 2rem;">
                 <header class="top-bar" style="padding: 0 0 1.5rem 0; border-bottom: 1px solid var(--glass-border);">
                     <div>
-                        <h2><i class="fa-solid fa-chart-pie" style="color:var(--accent-color);"></i> Cafe Analytics Dashboard</h2>
-                        <p style="color:var(--text-secondary); font-size:0.9rem; margin-top:0.2rem;">Live business performance, payment breakdowns, and item popularity</p>
+                        <h2><i class="fa-solid fa-chart-pie" style="color:var(--accent-color);"></i> Sales & Reports Dashboard</h2>
+                        <p style="color:var(--text-secondary); font-size:0.9rem; margin-top:0.2rem;">Live business sales, payment types, and popular items</p>
                     </div>
                     <button id="refresh-stats-btn" class="btn-secondary" style="padding: 0.6rem 1rem; font-size:0.9rem;">
-                        <i class="fa-solid fa-arrows-rotate"></i> Refresh Stats
+                        <i class="fa-solid fa-arrows-rotate"></i> Refresh Reports
                     </button>
                 </header>
                 
@@ -261,7 +261,7 @@
                         <div class="metric-card glass-panel">
                             <i class="fa-solid fa-chart-line icon"></i>
                             <div class="info">
-                                <h4>Avg Order Value</h4>
+                                <h4>Average Order Amount</h4>
                                 <h2 id="metric-aov">₹0.00</h2>
                             </div>
                         </div>
@@ -270,11 +270,11 @@
                     <!-- Middle Row: Charts -->
                     <div class="charts-row" style="margin-top: 1.5rem;">
                         <div class="chart-box glass-panel" style="flex: 2; padding: 1.2rem;">
-                            <h3>Daily Sales Trends</h3>
+                            <h3>Daily Sales Trend</h3>
                             <canvas id="salesTrendChart"></canvas>
                         </div>
                         <div class="chart-box glass-panel" style="flex: 1.2; padding: 1.2rem;">
-                            <h3>Revenue by Payment Method</h3>
+                            <h3>Sales by Payment Type</h3>
                             <canvas id="revenuePieChart"></canvas>
                         </div>
                     </div>
@@ -282,15 +282,15 @@
                     <!-- Bottom Row: Detailed Lists & Bar Chart -->
                     <div class="lists-row" style="margin-top: 1.5rem;">
                         <div class="list-box glass-panel" style="flex: 1.5; padding: 1.2rem;">
-                            <h3>Top 5 Popular Items</h3>
+                            <h3>Top 5 Best-Selling Items</h3>
                             <canvas id="popularItemsChart"></canvas>
                         </div>
                         <div class="list-box glass-panel" style="flex: 1; padding: 1.2rem;">
-                            <h3>Top Repeat Customers</h3>
+                            <h3>Top Regular Customers</h3>
                             <ul id="top-customers-list" class="styled-list"></ul>
                         </div>
                         <div class="list-box glass-panel" style="flex: 1; padding: 1.2rem;">
-                            <h3>Low Selling Items</h3>
+                            <h3>Slow Selling Items</h3>
                             <ul id="low-perf-list" class="styled-list"></ul>
                         </div>
                     </div>
@@ -311,13 +311,13 @@
                 <input type="text" id="menu-item-name" placeholder="e.g. Vanilla Latte, Brownie, Burger...">
                 <label style="margin-top:0.6rem;">Price (₹)</label>
                 <input type="number" id="menu-item-price" placeholder="150" step="0.5">
-                <label style="margin-top:0.6rem;">Image URL (Paste any image link or leave blank for auto-pick)</label>
-                <input type="text" id="menu-item-image" placeholder="Paste image link address (e.g. https://.../image.jpg)">
+                <label style="margin-top:0.6rem;">Image Link (Paste image link or leave empty to auto-pick)</label>
+                <input type="text" id="menu-item-image" placeholder="Paste image link (e.g. https://.../image.jpg)">
                 <div style="display:flex; align-items:center; gap:0.9rem; margin-top:0.8rem; padding:0.7rem; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:12px;">
                     <img id="menu-item-preview" referrerpolicy="no-referrer" src="https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=400&q=80" alt="Preview" style="width:54px; height:54px; min-width:54px; border-radius:10px; object-fit:cover; border:2px solid var(--accent-color); background: rgba(0,0,0,0.3);">
                     <div style="font-size:0.82rem; color:var(--text-secondary); text-align:left; line-height:1.35; flex:1;">
-                        <strong id="menu-item-preview-title" style="color:#fff; display:block; margin-bottom:2px;">Live Picture Preview</strong>
-                        <span id="menu-item-preview-status">Type name or paste image link address above.</span>
+                        <strong id="menu-item-preview-title" style="color:#fff; display:block; margin-bottom:2px;">Picture Preview</strong>
+                        <span id="menu-item-preview-status">Type a name or paste an image link above.</span>
                     </div>
                 </div>
             </div>
@@ -347,8 +347,8 @@
             
             <div class="payment-modal-header">
                 <div class="payment-title-wrap">
-                    <h2><i class="fa-solid fa-shield-halved"></i> Complete Payment</h2>
-                    <p class="pay-modal-sub">Order Total: <span id="payment-modal-amount" class="pay-amount-highlight">₹0.00</span></p>
+                    <h2><i class="fa-solid fa-shield-halved"></i> Choose Payment Method</h2>
+                    <p class="pay-modal-sub">Amount to Pay: <span id="payment-modal-amount" class="pay-amount-highlight">₹0.00</span></p>
                 </div>
                 <div class="gateway-badge-header">
                     <i class="fa-brands fa-stripe stripe-brand-icon"></i>
@@ -359,16 +359,16 @@
             <!-- Payment Method Navigation Tabs -->
             <div class="payment-tabs">
                 <button type="button" class="pay-tab active" data-tab="stripe-tab" id="tab-btn-stripe">
-                    <i class="fa-brands fa-stripe"></i> Stripe Card
+                    <i class="fa-brands fa-stripe"></i> Card
                 </button>
                 <button type="button" class="pay-tab" data-tab="upi-tab" id="tab-btn-upi">
                     <i class="fa-solid fa-qrcode"></i> UPI / QR Code
                 </button>
                 <button type="button" class="pay-tab" data-tab="wallet-tab" id="tab-btn-wallet">
-                    <i class="fa-solid fa-wallet"></i> Wallets & Banking
+                    <i class="fa-solid fa-wallet"></i> Wallets & Bank
                 </button>
                 <button type="button" class="pay-tab" data-tab="cash-tab" id="tab-btn-cash">
-                    <i class="fa-solid fa-money-bill-wave"></i> Cash Drawer
+                    <i class="fa-solid fa-money-bill-wave"></i> Cash
                 </button>
             </div>
 
@@ -380,12 +380,12 @@
                         <i class="fa-brands fa-cc-mastercard"></i>
                         <i class="fa-brands fa-cc-amex"></i>
                     </div>
-                    <span class="stripe-status-pill"><span class="pulse-dot"></span> Live Stripe Test Gateway</span>
+                    <span class="stripe-status-pill"><span class="pulse-dot"></span> Test Payment Gateway Active</span>
                 </div>
 
                 <!-- Quick test card autofill buttons -->
                 <div class="test-cards-row">
-                    <span class="test-card-label">Quick Test Cards:</span>
+                    <span class="test-card-label">Fill Test Card:</span>
                     <button type="button" class="btn-test-card" id="btn-autofill-visa"><i class="fa-brands fa-cc-visa"></i> Visa 4242</button>
                     <button type="button" class="btn-test-card" id="btn-autofill-mc"><i class="fa-brands fa-cc-mastercard"></i> MC 5555</button>
                     <button type="button" class="btn-test-card" id="btn-autofill-amex"><i class="fa-brands fa-cc-amex"></i> Amex 0005</button>
@@ -393,7 +393,7 @@
 
                 <div class="card-input-grid">
                     <div class="form-group span-2">
-                        <label>Cardholder Name</label>
+                        <label>Name on Card</label>
                         <input type="text" id="stripe-cardholder" placeholder="e.g. Rahul Sharma" value="Rahul Sharma">
                     </div>
                     <div class="form-group span-2">
@@ -404,11 +404,11 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Expiry</label>
+                        <label>Expiry Date</label>
                         <input type="text" id="stripe-exp" placeholder="MM/YY" maxlength="5" value="12/28">
                     </div>
                     <div class="form-group">
-                        <label>CVC / CVV</label>
+                        <label>CVV / CVC Code</label>
                         <input type="password" id="stripe-cvc" placeholder="123" maxlength="4" value="123">
                     </div>
                 </div>
@@ -417,10 +417,10 @@
 
                 <div class="stripe-actions-row">
                     <button type="button" id="stripe-pay-btn" class="btn-primary btn-pay-action">
-                        <i class="fa-solid fa-lock"></i> <span id="stripe-pay-btn-text">Pay via Stripe</span>
+                        <i class="fa-solid fa-lock"></i> <span id="stripe-pay-btn-text">Pay by Card</span>
                     </button>
-                    <button type="button" id="stripe-checkout-hosted-btn" class="btn-secondary btn-hosted-action" title="Open official Stripe hosted checkout page">
-                        <i class="fa-brands fa-stripe-s"></i> Hosted Checkout Page
+                    <button type="button" id="stripe-checkout-hosted-btn" class="btn-secondary btn-hosted-action" title="Open Stripe payment website">
+                        <i class="fa-brands fa-stripe-s"></i> Pay on Stripe Page
                     </button>
                 </div>
             </div>
@@ -430,11 +430,11 @@
                 <div class="upi-container">
                     <div class="qr-wrapper">
                         <img id="upi-qr-image" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=aura.cafe@okaxis" alt="UPI QR Code" class="upi-qr-img">
-                        <div class="qr-scan-hint"><i class="fa-solid fa-camera"></i> Scan with GPay, PhonePe, Paytm</div>
+                        <div class="qr-scan-hint"><i class="fa-solid fa-camera"></i> Scan using GPay, PhonePe, or Paytm</div>
                     </div>
                     <div class="upi-details">
                         <div class="upi-id-box">
-                            <label>Cafe UPI ID (VPA):</label>
+                            <label>Cafe UPI ID:</label>
                             <div class="copy-input-group">
                                 <input type="text" id="upi-vpa-text" value="aura.cafe@okaxis" readonly>
                                 <button type="button" id="copy-upi-btn" class="btn-secondary"><i class="fa-regular fa-copy"></i> Copy</button>
@@ -449,17 +449,17 @@
                         </div>
 
                         <div class="upi-timer-box">
-                            <span><i class="fa-regular fa-clock"></i> QR valid for:</span>
+                            <span><i class="fa-regular fa-clock"></i> QR code valid for:</span>
                             <strong id="upi-countdown" class="upi-countdown-timer">04:59</strong>
                         </div>
 
                         <div class="form-group" style="margin-top: 0.6rem;">
-                            <label>UPI Ref / UTR No. (Optional):</label>
+                            <label>Payment Reference Number (Optional):</label>
                             <input type="text" id="upi-utr-input" placeholder="e.g. 403819284729 or leave empty">
                         </div>
 
                         <button type="button" id="upi-confirm-btn" class="btn-primary btn-pay-action" style="margin-top: 0.8rem; width:100%;">
-                            <i class="fa-solid fa-circle-check"></i> Confirm UPI Payment Received
+                            <i class="fa-solid fa-circle-check"></i> I Have Received This UPI Payment
                         </button>
                     </div>
                 </div>
@@ -468,7 +468,7 @@
             <!-- Tab 3: Wallets & Net Banking -->
             <div id="wallet-tab" class="pay-tab-content hidden">
                 <div class="wallets-grid-container">
-                    <h4 class="sub-section-title"><i class="fa-solid fa-wallet"></i> Digital Wallets</h4>
+                    <h4 class="sub-section-title"><i class="fa-solid fa-wallet"></i> Wallets</h4>
                     <div class="wallet-options">
                         <label class="wallet-option active">
                             <input type="radio" name="online-wallet" value="Paytm Wallet" checked>
@@ -509,7 +509,7 @@
                     </div>
 
                     <button type="button" id="wallet-confirm-btn" class="btn-primary btn-pay-action" style="margin-top: 1.2rem; width:100%;">
-                        <i class="fa-solid fa-bolt"></i> Authorize & Complete Online Payment
+                        <i class="fa-solid fa-bolt"></i> Complete Payment
                     </button>
                 </div>
             </div>
@@ -523,7 +523,7 @@
                     </div>
 
                     <div class="form-group" style="margin-top: 1rem;">
-                        <label>Cash Tendered by Customer (₹)</label>
+                        <label>Cash Given by Customer (₹)</label>
                         <input type="number" id="cash-tendered-input" placeholder="Enter cash received" step="1">
                     </div>
 
@@ -554,8 +554,8 @@
     <div id="login-modal" class="modal-overlay">
         <div class="modal-content receipt-glass" style="max-width: 440px; text-align: center;">
             <i class="fa-solid fa-mug-hot" style="font-size:3rem; color: var(--accent-color); margin-bottom: 0.5rem;"></i>
-            <h2>CafeCore Portal Login</h2>
-            <p style="color:var(--text-secondary); font-size:0.88rem; margin-bottom:1rem;">Access POS, Orders, Menu Management & Analytics</p>
+            <h2>Cafe Staff Login</h2>
+            <p style="color:var(--text-secondary); font-size:0.88rem; margin-bottom:1rem;">Sign in to open POS, orders, menu, and sales reports</p>
             
             <div id="login-view">
                 <!-- 1-Click Quick Demo Login Row -->
@@ -578,10 +578,10 @@
                     </div>
                 </div>
                 <button id="login-btn" class="btn-primary" style="margin-top: 1rem; width:100%;">
-                    <i class="fa-solid fa-right-to-bracket"></i> Login
+                    <i class="fa-solid fa-right-to-bracket"></i> Log In
                 </button>
                 
-                <p class="auth-switch" style="margin-top:1rem;">New staff member? <a href="#" id="show-signup">Register Account</a></p>
+                <p class="auth-switch" style="margin-top:1rem;">New staff member? <a href="#" id="show-signup">Create Account</a></p>
                 <div id="login-error" style="color: var(--danger); margin-top: 0.8rem; font-size: 0.9rem;"></div>
             </div>
 
@@ -596,7 +596,7 @@
                         <input type="password" id="signup-password" placeholder="••••••••">
                         <i class="fa-solid fa-eye-slash toggle-password" id="toggle-signup-password"></i>
                     </div>
-                    <label>Role</label>
+                    <label>Job Role</label>
                     <select id="signup-role" class="payment-select">
                         <option value="Cashier">Cashier</option>
                         <option value="Barista">Barista</option>

@@ -32,10 +32,10 @@ app.post('/api/login', (req, res) => {
     try {
         const db = getDB();
         const user = db.prepare('SELECT * FROM Staff WHERE email = ?').get(email);
-        if (!user) return res.status(401).json({ success: false, error: 'Invalid email or password.' });
+        if (!user) return res.status(401).json({ success: false, error: 'Incorrect email or password.' });
 
         const isMatch = bcrypt.compareSync(password, user.password);
-        if (!isMatch) return res.status(401).json({ success: false, error: 'Invalid email or password.' });
+        if (!isMatch) return res.status(401).json({ success: false, error: 'Incorrect email or password.' });
 
         const token = jwt.sign(
             { id: user.staff_id, name: user.name, role: user.role },
@@ -45,7 +45,7 @@ app.post('/api/login', (req, res) => {
         res.json({ success: true, token, user: { id: user.staff_id, name: user.name, role: user.role } });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Server error during login' });
+        res.status(500).json({ error: 'Server error. Could not log in.' });
     }
 });
 
@@ -54,14 +54,14 @@ app.post('/api/signup', (req, res) => {
     try {
         const db = getDB();
         const existing = db.prepare('SELECT * FROM Staff WHERE email = ?').get(email);
-        if (existing) return res.status(400).json({ success: false, error: 'Staff email already registered.' });
+        if (existing) return res.status(400).json({ success: false, error: 'This email is already registered.' });
 
         const hashedPassword = bcrypt.hashSync(password, 10);
         db.prepare('INSERT INTO Staff (name, email, password, role) VALUES (?, ?, ?, ?)').run(name, email, hashedPassword, role || 'Cashier');
         res.status(201).json({ success: true, message: 'Account created successfully!' });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Server error during signup' });
+        res.status(500).json({ error: 'Server error. Could not create account.' });
     }
 });
 
@@ -75,19 +75,19 @@ app.get('/api/payment/config', (req, res) => {
         currencySymbol: '₹',
         upiVpa: 'aura.cafe@okaxis',
         cafeName: 'Aura Cafe',
-        supportedMethods: ['Stripe Card', 'UPI / QR Code', 'Digital Wallet', 'Net Banking', 'Cash']
+        supportedMethods: ['Card', 'UPI / QR Code', 'Wallets', 'Net Banking', 'Cash']
     });
 });
 
 // Stripe Hosted Checkout Session
 app.post('/api/stripe/checkout-session', async (req, res) => {
     if (!stripe) {
-        return res.status(503).json({ error: 'Stripe is not configured. Please set STRIPE_SECRET_KEY.' });
+        return res.status(503).json({ error: 'Card payment is not set up on the server.' });
     }
 
     const { items, customerName, customerPhone } = req.body;
     if (!items || !items.length) {
-        return res.status(400).json({ error: 'No items in order' });
+        return res.status(400).json({ error: 'Your cart has no items' });
     }
 
     try {
@@ -132,12 +132,12 @@ app.post('/api/stripe/checkout-session', async (req, res) => {
 // Stripe Direct Card Payment (Instant in-app confirmation)
 app.post('/api/stripe/pay-card', async (req, res) => {
     if (!stripe) {
-        return res.status(503).json({ error: 'Stripe is not configured. Please set STRIPE_SECRET_KEY.' });
+        return res.status(503).json({ error: 'Card payment is not set up on the server.' });
     }
 
     const { amount, paymentMethodId = 'pm_card_visa', customerName, customerPhone } = req.body;
     if (!amount || amount <= 0) {
-        return res.status(400).json({ error: 'Valid amount is required' });
+        return res.status(400).json({ error: 'A valid payment amount is required' });
     }
 
     try {
@@ -192,7 +192,7 @@ function requireAdmin(req, res, next) {
     if (!token) {
         return res.status(401).json({
             success: false,
-            error: 'Admin Authorization Required: Please login as Admin to add or remove menu items.'
+            error: 'Admin login needed: Please sign in as Admin to add or remove menu items.'
         });
     }
 
@@ -201,7 +201,7 @@ function requireAdmin(req, res, next) {
         if (decoded.role !== 'Admin' && decoded.role !== 'Manager') {
             return res.status(403).json({
                 success: false,
-                error: `Permission Denied: Staff role '${decoded.role}' cannot add or remove menu items. Admin login required.`
+                error: `Access denied: Role '${decoded.role}' cannot change menu items. Admin login is required.`
             });
         }
         req.user = decoded;
@@ -209,7 +209,7 @@ function requireAdmin(req, res, next) {
     } catch (err) {
         return res.status(401).json({
             success: false,
-            error: 'Session expired or invalid. Please login as Admin.'
+            error: 'Your login has expired. Please sign in again as Admin.'
         });
     }
 }
@@ -224,7 +224,7 @@ app.post('/api/admin/verify', (req, res) => {
             return res.status(401).json({ success: false, error: 'Staff account not found.' });
         }
         if (user.role !== 'Admin' && user.role !== 'Manager') {
-            return res.status(403).json({ success: false, error: `Account (${user.role}) does not have Admin privileges.` });
+            return res.status(403).json({ success: false, error: `Account (${user.role}) does not have Admin access.` });
         }
         const isMatch = bcrypt.compareSync(password, user.password);
         if (!isMatch) {
@@ -238,13 +238,13 @@ app.post('/api/admin/verify', (req, res) => {
         );
         res.json({
             success: true,
-            message: 'Admin authorization successful.',
+            message: 'Admin login verified.',
             token,
             user: { id: user.staff_id, name: user.name, role: user.role }
         });
     } catch (err) {
         console.error('Admin verify error:', err);
-        res.status(500).json({ success: false, error: 'Server error during admin verification' });
+        res.status(500).json({ success: false, error: 'Server error while checking Admin login' });
     }
 });
 
@@ -262,19 +262,19 @@ app.get('/api/menu', (req, res) => {
 
 app.post('/api/menu', requireAdmin, (req, res) => {
     const { item_name, price, image_url } = req.body;
-    if (!item_name || !price) return res.status(400).json({ error: 'item_name and price are required' });
+    if (!item_name || !price) return res.status(400).json({ error: 'Please enter both item name and price' });
     try {
         const db = getDB();
         const trimmedName = item_name.trim();
         const existing = db.prepare('SELECT item_id FROM Menu WHERE LOWER(item_name) = LOWER(?)').get(trimmedName);
         if (existing) {
-            return res.status(400).json({ error: `An item named "${trimmedName}" already exists in the menu. Please edit it or use a different name.` });
+            return res.status(400).json({ error: `An item named "${trimmedName}" is already in the menu. Please edit it or use a different name.` });
         }
         const result = db.prepare('INSERT INTO Menu (item_name, price, image_url) VALUES (?, ?, ?)').run(trimmedName, parseFloat(price), image_url || null);
         res.status(201).json({ success: true, item_id: result.lastInsertRowid });
     } catch (err) {
         if (err.message && err.message.includes('UNIQUE')) {
-            return res.status(400).json({ error: `An item with this name already exists in the menu.` });
+            return res.status(400).json({ error: `An item with this name is already in the menu.` });
         }
         res.status(500).json({ error: err.message });
     }
@@ -283,13 +283,13 @@ app.post('/api/menu', requireAdmin, (req, res) => {
 app.put('/api/menu/:id', requireAdmin, (req, res) => {
     const { item_name, price, image_url } = req.body;
     const itemId = req.params.id;
-    if (!item_name || !price) return res.status(400).json({ error: 'item_name and price are required' });
+    if (!item_name || !price) return res.status(400).json({ error: 'Please enter both item name and price' });
     try {
         const db = getDB();
         const trimmedName = item_name.trim();
         const existing = db.prepare('SELECT item_id FROM Menu WHERE LOWER(item_name) = LOWER(?) AND item_id != ?').get(trimmedName, itemId);
         if (existing) {
-            return res.status(400).json({ error: `Another item named "${trimmedName}" already exists in the menu.` });
+            return res.status(400).json({ error: `Another item named "${trimmedName}" is already in the menu.` });
         }
         const result = db.prepare('UPDATE Menu SET item_name = ?, price = ?, image_url = ? WHERE item_id = ?').run(trimmedName, parseFloat(price), image_url || null, itemId);
         if (result.changes === 0) return res.status(404).json({ error: 'Menu item not found' });
@@ -515,10 +515,10 @@ app.put('/api/orders/:id/deliver', (req, res) => {
         const db = getDB();
 
         const result = db.prepare(`UPDATE Orders SET status = 'Delivered', delivered_at = CURRENT_TIMESTAMP WHERE order_id = ? AND status = 'Pending'`).run(orderId);
-        if (result.changes === 0) return res.status(404).json({ error: 'Order not found or already delivered' });
+        if (result.changes === 0) return res.status(404).json({ error: 'Order not found or already completed' });
 
         const row = db.prepare(`SELECT order_date, delivered_at, CAST((julianday(delivered_at) - julianday(order_date)) * 86400 AS INTEGER) as time_taken_seconds FROM Orders WHERE order_id = ?`).get(orderId);
-        res.json({ success: true, message: 'Order marked as delivered.', delivery_stats: row });
+        res.json({ success: true, message: 'Order marked as completed.', delivery_stats: row });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

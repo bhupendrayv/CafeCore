@@ -20,7 +20,7 @@
         </form>
         <div id="message"></div>
         <div class="links">
-            Don't have an account? <a href="signup.html">Register</a>
+            Don't have an account? <a href="signup.html">Create account</a>
         </div>
     </div>
 
@@ -49,7 +49,7 @@
                     
                     // Redirect to dashboard (Bonus - create a simple dummy one)
                     setTimeout(() => {
-                        alert('Login Successful! Redirecting to dashboard...');
+                        alert('Login successful! Taking you to dashboard...');
                         // window.location.href = 'dashboard.html';
                     }, 1000);
                 } else {
@@ -57,7 +57,7 @@
                     messageDiv.className = 'error';
                 }
             } catch (error) {
-                messageDiv.textContent = 'Connection error. Is the server running?';
+                messageDiv.textContent = 'Cannot connect to server. Is the server running?';
                 messageDiv.className = 'error';
             }
         });
