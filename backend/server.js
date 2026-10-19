@@ -6,8 +6,11 @@ const path = require('path');
 require('dotenv').config();
 const { initDB, getDB } = require('./db');
 
-const stripeKey = process.env.STRIPE_SECRET_KEY;
-const stripe = stripeKey ? require('stripe')(stripeKey) : null;
+const stripeKey = process.env.STRIPE_SECRET_KEY ? process.env.STRIPE_SECRET_KEY.trim() : null;
+const stripe = stripeKey ? require('stripe')(stripeKey, {
+    timeout: 30000,
+    maxNetworkRetries: 2
+}) : null;
 
 if (stripe) {
     console.log('💳 Stripe payment gateway enabled and initialized.');
