@@ -258,27 +258,43 @@ app.get('/api/menu', (req, res) => {
 });
 
 app.post('/api/menu', requireAdmin, (req, res) => {
-    const { item_name, price } = req.body;
+    const { item_name, price, image_url } = req.body;
     if (!item_name || !price) return res.status(400).json({ error: 'item_name and price are required' });
     try {
         const db = getDB();
-        const result = db.prepare('INSERT INTO Menu (item_name, price) VALUES (?, ?)').run(item_name, parseFloat(price));
+        const trimmedName = item_name.trim();
+        const existing = db.prepare('SELECT item_id FROM Menu WHERE LOWER(item_name) = LOWER(?)').get(trimmedName);
+        if (existing) {
+            return res.status(400).json({ error: `An item named "${trimmedName}" already exists in the menu. Please edit it or use a different name.` });
+        }
+        const result = db.prepare('INSERT INTO Menu (item_name, price, image_url) VALUES (?, ?, ?)').run(trimmedName, parseFloat(price), image_url || null);
         res.status(201).json({ success: true, item_id: result.lastInsertRowid });
     } catch (err) {
+        if (err.message && err.message.includes('UNIQUE')) {
+            return res.status(400).json({ error: `An item with this name already exists in the menu.` });
+        }
         res.status(500).json({ error: err.message });
     }
 });
 
 app.put('/api/menu/:id', requireAdmin, (req, res) => {
-    const { item_name, price } = req.body;
+    const { item_name, price, image_url } = req.body;
     const itemId = req.params.id;
     if (!item_name || !price) return res.status(400).json({ error: 'item_name and price are required' });
     try {
         const db = getDB();
-        const result = db.prepare('UPDATE Menu SET item_name = ?, price = ? WHERE item_id = ?').run(item_name, parseFloat(price), itemId);
+        const trimmedName = item_name.trim();
+        const existing = db.prepare('SELECT item_id FROM Menu WHERE LOWER(item_name) = LOWER(?) AND item_id != ?').get(trimmedName, itemId);
+        if (existing) {
+            return res.status(400).json({ error: `Another item named "${trimmedName}" already exists in the menu.` });
+        }
+        const result = db.prepare('UPDATE Menu SET item_name = ?, price = ?, image_url = ? WHERE item_id = ?').run(trimmedName, parseFloat(price), image_url || null, itemId);
         if (result.changes === 0) return res.status(404).json({ error: 'Menu item not found' });
         res.json({ success: true });
     } catch (err) {
+        if (err.message && err.message.includes('UNIQUE')) {
+            return res.status(400).json({ error: `Another item with this name already exists.` });
+        }
         res.status(500).json({ error: err.message });
     }
 });
@@ -382,6 +398,58 @@ app.get('/api/receipt/:orderId', (req, res) => {
 
         res.json(receipt);
     } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ─── Payment History & Search ────────────────────────────────────────────────
+app.get('/api/payments', (req, res) => {
+    try {
+        const { search } = req.query;
+        const db = getDB();
+
+        let query = `
+            SELECT 
+                p.payment_id,
+                p.order_id,
+                p.total_amount,
+                p.payment_method,
+                o.order_date,
+                o.status AS order_status,
+                c.customer_id,
+                c.name AS customer_name,
+                c.phone AS customer_phone,
+                GROUP_CONCAT(od.quantity || 'x ' || m.item_name, ', ') AS item_summary
+            FROM Payment p
+            JOIN Orders o ON p.order_id = o.order_id
+            JOIN Customer c ON o.customer_id = c.customer_id
+            LEFT JOIN Order_Details od ON o.order_id = od.order_id
+            LEFT JOIN Menu m ON od.item_id = m.item_id
+        `;
+
+        const params = [];
+        if (search && search.trim()) {
+            const term = `%${search.trim()}%`;
+            const numericTerm = search.trim().replace(/^#?(ORD-)?/i, '');
+            query += `
+                WHERE c.phone LIKE ?
+                   OR c.name LIKE ?
+                   OR p.order_id = ?
+                   OR p.payment_method LIKE ?
+            `;
+            params.push(term, term, isNaN(numericTerm) ? -1 : parseInt(numericTerm), term);
+        }
+
+        query += `
+            GROUP BY p.payment_id, p.order_id
+            ORDER BY o.order_date DESC, p.payment_id DESC
+            LIMIT 100
+        `;
+
+        const rows = db.prepare(query).all(...params);
+        res.json(rows);
+    } catch (err) {
+        console.error('Error fetching payments:', err);
         res.status(500).json({ error: err.message });
     }
 });

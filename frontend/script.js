@@ -14,10 +14,12 @@ const receiptModal = document.getElementById('receipt-modal');
 const printableReceipt = document.getElementById('printable-receipt');
 const navPos = document.getElementById('nav-pos');
 const navTracking = document.getElementById('nav-tracking');
+const navHistory = document.getElementById('nav-history');
 const navMgmt = document.getElementById('nav-mgmt');
 const navStats = document.getElementById('nav-stats');
 const posWorkspace = document.getElementById('pos-workspace');
 const trackingWorkspace = document.getElementById('tracking-workspace');
+const historyWorkspace = document.getElementById('history-workspace');
 const mgmtWorkspace = document.getElementById('mgmt-workspace');
 const statsWorkspace = document.getElementById('stats-workspace');
 
@@ -44,19 +46,25 @@ function setupAuthToggles() {
     const loginTitle = document.querySelector('#login-modal h2');
 
     // View Switching
-    document.getElementById('show-signup').addEventListener('click', (e) => {
-        e.preventDefault();
-        loginView.classList.add('hidden');
-        signupView.classList.remove('hidden');
-        loginTitle.innerText = 'Staff Signup';
-    });
+    const showSignup = document.getElementById('show-signup');
+    if (showSignup) {
+        showSignup.addEventListener('click', (e) => {
+            e.preventDefault();
+            loginView.classList.add('hidden');
+            signupView.classList.remove('hidden');
+            if (loginTitle) loginTitle.innerText = 'Register Staff Account';
+        });
+    }
 
-    document.getElementById('show-login').addEventListener('click', (e) => {
-        e.preventDefault();
-        signupView.classList.add('hidden');
-        loginView.classList.remove('hidden');
-        loginTitle.innerText = 'Staff Login';
-    });
+    const showLogin = document.getElementById('show-login');
+    if (showLogin) {
+        showLogin.addEventListener('click', (e) => {
+            e.preventDefault();
+            signupView.classList.add('hidden');
+            loginView.classList.remove('hidden');
+            if (loginTitle) loginTitle.innerText = 'CafeCore Portal Login';
+        });
+    }
 
     // Password Visibility Toggles
     const setupToggle = (btnId, inputId) => {
@@ -75,24 +83,20 @@ function setupAuthToggles() {
     setupToggle('toggle-login-password', 'login-password');
     setupToggle('toggle-signup-password', 'signup-password');
 
-    // Switch between Staff Login and Admin Portal
-    const switchToAdmin = document.getElementById('switch-to-admin-portal');
-    if (switchToAdmin) {
-        switchToAdmin.addEventListener('click', (e) => {
-            e.preventDefault();
-            loginModal.classList.add('hidden');
-            const adminModal = document.getElementById('admin-auth-modal');
-            if (adminModal) adminModal.classList.remove('hidden');
+    // Quick Fill Demo Credentials
+    const quickAdmin = document.getElementById('quick-fill-admin');
+    if (quickAdmin) {
+        quickAdmin.addEventListener('click', () => {
+            document.getElementById('login-email').value = 'admin@aura.cafe';
+            document.getElementById('login-password').value = 'admin123';
         });
     }
 
-    const switchToStaff = document.getElementById('switch-to-staff-portal');
-    if (switchToStaff) {
-        switchToStaff.addEventListener('click', (e) => {
-            e.preventDefault();
-            const adminModal = document.getElementById('admin-auth-modal');
-            if (adminModal) adminModal.classList.add('hidden');
-            loginModal.classList.remove('hidden');
+    const quickBarista = document.getElementById('quick-fill-barista');
+    if (quickBarista) {
+        quickBarista.addEventListener('click', () => {
+            document.getElementById('login-email').value = 'bob@aura.cafe';
+            document.getElementById('login-password').value = 'password123';
         });
     }
 }
@@ -107,16 +111,29 @@ function promptAdminAuth(callback) {
         return;
     }
     pendingAdminAction = callback;
-    const errDiv = document.getElementById('admin-auth-error');
-    if (errDiv) errDiv.innerText = '';
-    const modal = document.getElementById('admin-auth-modal');
-    if (modal) modal.classList.remove('hidden');
+    const errDiv = document.getElementById('login-error');
+    if (errDiv) errDiv.innerText = 'Admin or Manager login required for this action.';
+    if (loginModal) loginModal.classList.remove('hidden');
 }
 
 function updateMgmtAdminBanner() {
     const banner = document.getElementById('mgmt-admin-banner');
+    const addMenuBtn = document.getElementById('add-menu-btn');
+    const adminActive = isAdmin();
+
+    if (addMenuBtn) {
+        addMenuBtn.style.display = adminActive ? 'inline-flex' : 'none';
+    }
+
+    // Toggle edit and delete action buttons visibility if rows already exist
+    const actionBtns = document.querySelectorAll('#mgmt-menu-tbody .btn-edit-item, #mgmt-menu-tbody .btn-del-item');
+    actionBtns.forEach(btn => {
+        btn.style.display = adminActive ? 'inline-flex' : 'none';
+    });
+
     if (!banner) return;
-    if (isAdmin()) {
+    if (adminActive) {
+        banner.style.display = 'flex';
         banner.className = 'admin-banner-notice admin-unlocked';
         banner.innerHTML = `
             <div class="banner-content">
@@ -128,19 +145,8 @@ function updateMgmtAdminBanner() {
             <span class="role-badge role-admin" style="font-size:0.75rem;"><i class="fa-solid fa-shield-halved"></i> Admin Mode</span>
         `;
     } else {
-        const roleName = currentUser ? currentUser.role : 'Staff';
-        banner.className = 'admin-banner-notice admin-locked';
-        banner.innerHTML = `
-            <div class="banner-content">
-                <i class="fa-solid fa-lock banner-icon"></i>
-                <div>
-                    <strong>Restricted to Admin</strong> — Current login is <u>${roleName}</u>. Admin authentication is required to Add or Remove items.
-                </div>
-            </div>
-            <button type="button" class="btn-primary" onclick="promptAdminAuth(() => loadMenuMgmt())" style="padding:0.4rem 0.9rem; font-size:0.8rem; white-space:nowrap;">
-                <i class="fa-solid fa-key"></i> Unlock Admin
-            </button>
-        `;
+        banner.style.display = 'none';
+        banner.innerHTML = '';
     }
 }
 
@@ -181,126 +187,12 @@ function checkAuth() {
         loginModal.classList.add('hidden');
         updateMgmtAdminBanner();
     } else {
-        const path = window.location.pathname.toLowerCase();
-        if (path.includes('/admin')) {
-            loginModal.classList.add('hidden');
-            const adminModal = document.getElementById('admin-auth-modal');
-            if (adminModal) adminModal.classList.remove('hidden');
-        } else {
-            loginModal.classList.remove('hidden');
-        }
-    }
-
-    // Direct URL check if user navigates explicitly to /admin
-    const currentPath = window.location.pathname.toLowerCase();
-    if (currentPath.includes('/admin') && !isAdmin()) {
-        loginModal.classList.add('hidden');
-        const adminModal = document.getElementById('admin-auth-modal');
-        if (adminModal) adminModal.classList.remove('hidden');
-    } else if (currentPath.includes('/staff') && !currentUser) {
-        const adminModal = document.getElementById('admin-auth-modal');
-        if (adminModal) adminModal.classList.add('hidden');
         loginModal.classList.remove('hidden');
     }
 }
 
 function setupAdminAuthorization() {
-    const modal = document.getElementById('admin-auth-modal');
-    const closeBtn = document.getElementById('close-admin-auth-modal');
-    const quickBtn = document.getElementById('btn-quick-admin-auth');
-    const submitBtn = document.getElementById('admin-auth-submit-btn');
-    const headerAdminBtn = document.getElementById('header-admin-btn');
-    const posAddItemBtn = document.getElementById('pos-add-item-btn');
-    const errDiv = document.getElementById('admin-auth-error');
-
-    if (closeBtn) {
-        closeBtn.addEventListener('click', () => {
-            modal.classList.add('hidden');
-            pendingAdminAction = null;
-        });
-    }
-
-    // Toggle password in admin auth modal
-    const toggleAdminPass = document.getElementById('toggle-admin-password');
-    const adminPassInput = document.getElementById('admin-auth-password');
-    if (toggleAdminPass && adminPassInput) {
-        toggleAdminPass.addEventListener('click', () => {
-            const isPassword = adminPassInput.type === 'password';
-            adminPassInput.type = isPassword ? 'text' : 'password';
-            toggleAdminPass.classList.toggle('fa-eye', isPassword);
-            toggleAdminPass.classList.toggle('fa-eye-slash', !isPassword);
-        });
-    }
-
-    const verifyAdmin = async (email, password) => {
-        if (errDiv) errDiv.innerText = '';
-        try {
-            const res = await fetch(`${API_URL}/admin/verify`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
-            });
-            const data = await res.json();
-            if (data.success) {
-                localStorage.setItem('aura_token', data.token);
-                localStorage.setItem('aura_staff', JSON.stringify(data.user));
-                currentUser = data.user;
-                checkAuth();
-                modal.classList.add('hidden');
-                showToast(`👑 Admin Authorized: Welcome ${data.user.name}!`);
-
-                if (pendingAdminAction) {
-                    const act = pendingAdminAction;
-                    pendingAdminAction = null;
-                    act();
-                } else if (mgmtWorkspace.classList.contains('active')) {
-                    loadMenuMgmt();
-                }
-            } else {
-                if (errDiv) errDiv.innerText = data.error || 'Admin verification failed.';
-            }
-        } catch (e) {
-            if (errDiv) errDiv.innerText = 'Server error during admin verification.';
-        }
-    };
-
-    if (quickBtn) {
-        quickBtn.addEventListener('click', () => {
-            document.getElementById('admin-auth-email').value = 'admin@aura.cafe';
-            document.getElementById('admin-auth-password').value = 'admin123';
-            verifyAdmin('admin@aura.cafe', 'admin123');
-        });
-    }
-
-    if (submitBtn) {
-        submitBtn.addEventListener('click', () => {
-            const email = document.getElementById('admin-auth-email').value;
-            const password = document.getElementById('admin-auth-password').value;
-            if (!email || !password) {
-                if (errDiv) errDiv.innerText = 'Please enter admin email and password.';
-                return;
-            }
-            verifyAdmin(email, password);
-        });
-    }
-
-    if (headerAdminBtn) {
-        headerAdminBtn.addEventListener('click', () => {
-            if (isAdmin()) {
-                showToast(`🛡️ Currently logged in as Admin (${currentUser.name})`);
-            } else {
-                promptAdminAuth(() => {
-                    showToast('Admin privilege activated!');
-                });
-            }
-        });
-    }
-
-    if (posAddItemBtn) {
-        posAddItemBtn.addEventListener('click', () => {
-            promptAdminAuth(() => openMenuModal());
-        });
-    }
+    // Legacy stub - Admin and Staff login are unified
 }
 
 loginBtn.addEventListener('click', async () => {
@@ -319,7 +211,15 @@ loginBtn.addEventListener('click', async () => {
         if (data.success) {
             localStorage.setItem('aura_token', data.token); // Store JWT
             localStorage.setItem('aura_staff', JSON.stringify(data.user));
+            currentUser = data.user;
             checkAuth();
+            showToast(`👋 Welcome ${data.user.name} (${data.user.role})!`);
+
+            if (pendingAdminAction) {
+                const action = pendingAdminAction;
+                pendingAdminAction = null;
+                action();
+            }
         } else {
             errDiv.innerText = data.error;
         }
@@ -368,31 +268,104 @@ logoutBtn.addEventListener('click', () => {
 
 // Navigation
 function setupNavigation() {
-    const allWorkspaces = [posWorkspace, trackingWorkspace, mgmtWorkspace, statsWorkspace];
-    const allNavs = [navPos, navTracking, navMgmt, navStats];
+    const allWorkspaces = [posWorkspace, trackingWorkspace, historyWorkspace, mgmtWorkspace, statsWorkspace];
+    const allNavs = [navPos, navTracking, navHistory, navMgmt, navStats];
 
     const switchTab = (activeNav, activeWorkspace, action) => {
-        allNavs.forEach(n => n.parentElement.classList.remove('active'));
+        allNavs.forEach(n => {
+            if (n && n.parentElement) n.parentElement.classList.remove('active');
+        });
         allWorkspaces.forEach(w => {
-            w.classList.remove('active');
-            w.classList.add('hidden');
+            if (w) {
+                w.classList.remove('active');
+                w.classList.add('hidden');
+            }
         });
 
-        activeNav.parentElement.classList.add('active');
-        activeWorkspace.classList.add('active');
-        activeWorkspace.classList.remove('hidden');
+        if (activeNav && activeNav.parentElement) activeNav.parentElement.classList.add('active');
+        if (activeWorkspace) {
+            activeWorkspace.classList.add('active');
+            activeWorkspace.classList.remove('hidden');
+        }
 
         if (action) action();
     };
 
-    navPos.addEventListener('click', (e) => { e.preventDefault(); switchTab(navPos, posWorkspace); });
-    navTracking.addEventListener('click', (e) => { e.preventDefault(); switchTab(navTracking, trackingWorkspace, loadActiveOrders); });
-    navMgmt.addEventListener('click', (e) => { e.preventDefault(); switchTab(navMgmt, mgmtWorkspace, loadMenuMgmt); });
-    navStats.addEventListener('click', (e) => { e.preventDefault(); switchTab(navStats, statsWorkspace, loadAnalytics); });
+    if (navPos) navPos.addEventListener('click', (e) => { e.preventDefault(); switchTab(navPos, posWorkspace); });
+    if (navTracking) navTracking.addEventListener('click', (e) => { e.preventDefault(); switchTab(navTracking, trackingWorkspace, loadActiveOrders); });
+    if (navHistory) navHistory.addEventListener('click', (e) => { e.preventDefault(); switchTab(navHistory, historyWorkspace, loadPaymentHistory); });
+    if (navMgmt) navMgmt.addEventListener('click', (e) => { e.preventDefault(); switchTab(navMgmt, mgmtWorkspace, loadMenuMgmt); });
+    if (navStats) navStats.addEventListener('click', (e) => { e.preventDefault(); switchTab(navStats, statsWorkspace, loadAnalytics); });
+
+    const refreshOrdersBtn = document.getElementById('refresh-orders-btn');
+    if (refreshOrdersBtn) {
+        refreshOrdersBtn.addEventListener('click', () => {
+            loadActiveOrders();
+            showToast('🔄 Orders refreshed');
+        });
+    }
+
+    const refreshHistoryBtn = document.getElementById('refresh-history-btn');
+    if (refreshHistoryBtn) {
+        refreshHistoryBtn.addEventListener('click', () => {
+            const searchInput = document.getElementById('search-payment-history');
+            const searchVal = searchInput ? searchInput.value.trim() : '';
+            loadPaymentHistory(searchVal);
+            showToast('🔄 Payment history refreshed');
+        });
+    }
+
+    const searchHistoryInput = document.getElementById('search-payment-history');
+    if (searchHistoryInput) {
+        let debounceTimer;
+        searchHistoryInput.addEventListener('input', (e) => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                loadPaymentHistory(e.target.value.trim());
+            }, 300);
+        });
+    }
+
+    // Filter Buttons (Cash, UPI, Card, Net Banking, All)
+    document.querySelectorAll('.history-filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.history-filter-btn').forEach(b => b.classList.remove('active-filter'));
+            btn.classList.add('active-filter');
+            applyHistoryFilter(btn.getAttribute('data-filter'));
+        });
+    });
 }
 
-function getIconForMenu(name) {
-    const n = name.toLowerCase();
+function getIconForMenu(name, customImageUrl = '') {
+    if (customImageUrl && typeof customImageUrl === 'string') {
+        let clean = customImageUrl.trim();
+        if (clean.startsWith('//')) {
+            clean = 'https:' + clean;
+        }
+        if (clean.startsWith('http://') || clean.startsWith('https://') || clean.startsWith('data:image/') || clean.startsWith('assets/')) {
+            // Only return URL if it looks like a direct image (not a webpage link)
+            const urlPath = clean.toLowerCase().split('?')[0];
+            const hasImageExt = /\.(jpg|jpeg|png|webp|gif|svg|avif|bmp|tiff?)$/i.test(urlPath);
+            const isKnownImageCDN = urlPath.includes('images.unsplash.com')
+                || urlPath.includes('unsplash.com/photo')
+                || urlPath.includes('cloudinary.com')
+                || urlPath.includes('imgur.com')
+                || urlPath.includes('pexels.com')
+                || urlPath.includes('pixabay.com')
+                || urlPath.includes('googleusercontent.com')
+                || urlPath.includes('wp-content/uploads')
+                || clean.startsWith('data:image/')
+                || clean.startsWith('assets/');
+            const isWebPage = urlPath.endsWith('/') || urlPath.endsWith('.html') || urlPath.endsWith('.htm');
+            if ((hasImageExt || isKnownImageCDN) && !isWebPage) {
+                return clean;
+            }
+            // Fall through to name-based auto-matching if it appears to be a webpage URL
+        }
+    }
+    const n = (name || '').toLowerCase();
+    
+    // Exact cafe assets
     if (n.includes('espresso')) return 'assets/espresso_real_1775865380509.png';
     if (n.includes('latte')) return 'assets/latte_real_1775865471400.png';
     if (n.includes('cappuccino')) return 'assets/cappuccino_real_1775865504766.png';
@@ -400,12 +373,35 @@ function getIconForMenu(name) {
     if (n.includes('croissant')) return 'assets/croissant_real_1775865539272.png';
     if (n.includes('frap')) return 'assets/iced_frap_real_1775865675708.png';
     if (n.includes('green tea')) return 'assets/green_tea_real_1775866008916.png';
-    if (n.includes('milk tea')) return 'https://images.unsplash.com/photo-1558857563-b37103eb4d8b?w=400&q=80';
-    if (n.includes('ice cream')) return 'https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=400&q=80';
-    if (n.includes('green tea')) return 'assets/green_tea_real_1775866008916.png';
-    if (n.includes('milk tea')) return 'https://images.unsplash.com/photo-1558857563-b37103eb4d8b?w=400&q=80';
-    if (n.includes('ice cream')) return 'https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=400&q=80';
-    return '';
+    
+    // Smart food category matching based on name
+    if (n.includes('mocha')) return 'https://images.unsplash.com/photo-1578314675249-a6910f80cc4e?w=400&q=80';
+    if (n.includes('americano')) return 'https://images.unsplash.com/photo-1551030173-122aabc4489c?w=400&q=80';
+    if (n.includes('cold brew') || n.includes('iced coffee')) return 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=400&q=80';
+    if (n.includes('tea') || n.includes('chai')) return 'https://images.unsplash.com/photo-1558857563-b37103eb4d8b?w=400&q=80';
+    if (n.includes('ice cream') || n.includes('sundae') || n.includes('gelato')) return 'https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=400&q=80';
+    if (n.includes('burger')) return 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=80';
+    if (n.includes('pizza')) return 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80';
+    if (n.includes('sandwich') || n.includes('toast') || n.includes('panini')) return 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=400&q=80';
+    if (n.includes('fries') || n.includes('finger')) return 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&q=80';
+    if (n.includes('cake') || n.includes('pastry') || n.includes('pie')) return 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&q=80';
+    if (n.includes('brownie')) return 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&q=80';
+    if (n.includes('cookie') || n.includes('biscuit')) return 'https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=400&q=80';
+    if (n.includes('donut') || n.includes('doughnut')) return 'https://images.unsplash.com/photo-1527515545081-5db817172677?w=400&q=80';
+    if (n.includes('pasta') || n.includes('spaghetti')) return 'https://images.unsplash.com/photo-1621996346565-e3d5d6281290?w=400&q=80';
+    if (n.includes('shake') || n.includes('smoothie')) return 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=400&q=80';
+    if (n.includes('juice') || n.includes('lemonade') || n.includes('mojito')) return 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=400&q=80';
+    if (n.includes('wrap') || n.includes('roll') || n.includes('burrito')) return 'https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=400&q=80';
+    if (n.includes('salad')) return 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&q=80';
+    if (n.includes('waffle') || n.includes('pancake')) return 'https://images.unsplash.com/photo-1562376552-0d160a2f238d?w=400&q=80';
+    
+    if (n.includes('samosa')) return 'https://images.unsplash.com/photo-1732519970445-8f2d6998961f?w=400&q=80';
+    if (n.includes('kachori') || n.includes('pakora') || n.includes('vada') || n.includes('snack')) return 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=400&q=80';
+    if (n.includes('maggie') || n.includes('maggi') || n.includes('noodle')) return 'https://images.unsplash.com/photo-1612927601601-6638404737ce?w=400&q=80';
+    if (n.includes('biryani') || n.includes('rice')) return 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400&q=80';
+    
+    // Default gourmet coffee & cafe food fallback
+    return 'https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=400&q=80';
 }
 
 // Fetch Menu
@@ -426,8 +422,10 @@ function renderMenu(items) {
     items.forEach(item => {
         const div = document.createElement('div');
         div.className = 'menu-item';
+        const imgUrl = getIconForMenu(item.item_name, item.image_url);
+        const fallbackIcon = getIconForMenu(item.item_name, '');
         div.innerHTML = `
-            <div class="icon"><img src="${getIconForMenu(item.item_name)}" alt="${item.item_name}" onerror="this.src='https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=400&q=80'"></div>
+            <div class="icon"><img referrerpolicy="no-referrer" src="${imgUrl}" alt="${item.item_name}" onerror="if (this.src !== '${fallbackIcon}') { this.src = '${fallbackIcon}'; } else { this.src='https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=400&q=80'; }"></div>
             <div class="name">${item.item_name}</div>
             <div class="price">₹${parseFloat(item.price).toFixed(2)}</div>
         `;
@@ -1218,6 +1216,120 @@ async function displayReceipt(orderId) {
         console.error("Failed to load receipt", err);
     }
 }
+window.displayReceipt = displayReceipt;
+
+// ─── Payment History Logic ───────────────────────────────────────────────────
+let allPaymentHistory = [];
+
+async function loadPaymentHistory(search = '') {
+    const tbody = document.getElementById('payment-history-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:2rem; color:var(--text-secondary);"><i class="fa-solid fa-spinner fa-spin"></i> Loading payment records...</td></tr>';
+
+    try {
+        const url = search ? `${API_URL}/payments?search=${encodeURIComponent(search)}` : `${API_URL}/payments`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Failed to fetch payments');
+        allPaymentHistory = await res.json();
+
+        // Check active filter
+        const activeBtn = document.querySelector('.history-filter-btn.active-filter');
+        const filter = activeBtn ? activeBtn.getAttribute('data-filter') : 'all';
+        applyHistoryFilter(filter);
+    } catch (err) {
+        console.error('Error loading payment history:', err);
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:2rem; color:var(--danger);"><i class="fa-solid fa-circle-exclamation"></i> Error loading payment history.</td></tr>';
+    }
+}
+
+function applyHistoryFilter(filter = 'all') {
+    const tbody = document.getElementById('payment-history-tbody');
+    if (!tbody) return;
+
+    let filtered = allPaymentHistory;
+    if (filter && filter !== 'all') {
+        const f = filter.toLowerCase();
+        filtered = allPaymentHistory.filter(p => {
+            const m = (p.payment_method || '').toLowerCase();
+            if (f === 'card') return m.includes('card') || m.includes('stripe');
+            if (f === 'net banking') return m.includes('net banking') || m.includes('sbi') || m.includes('hdfc') || m.includes('icici');
+            return m.includes(f);
+        });
+    }
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" style="text-align:center; padding:3rem 1rem; color:var(--text-secondary);">
+                    <i class="fa-solid fa-magnifying-glass" style="font-size:2rem; margin-bottom:0.6rem; opacity:0.6;"></i>
+                    <p style="margin:0;">No payments or bills found matching your search.</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = '';
+    filtered.forEach(p => {
+        const tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid rgba(255,255,255,0.08)';
+
+        const d = parseOrderTimestamp(p.order_date);
+        const formattedDate = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+        const formattedTime = d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+        // Highlight method pill
+        let badgeColor = '#3b82f6';
+        const methodStr = (p.payment_method || 'Cash').toLowerCase();
+        if (methodStr.includes('cash')) badgeColor = '#10b981';
+        else if (methodStr.includes('upi')) badgeColor = '#8b5cf6';
+        else if (methodStr.includes('stripe') || methodStr.includes('card')) badgeColor = '#f59e0b';
+        else if (methodStr.includes('net banking')) badgeColor = '#06b6d4';
+
+        tr.innerHTML = `
+            <td style="padding:0.9rem 1rem;">
+                <span style="font-weight:700; color:var(--accent-color); font-family:monospace; font-size:0.92rem;">#ORD-${p.order_id}</span>
+                <div style="font-size:0.75rem; color:var(--text-secondary);">PID #${p.payment_id}</div>
+            </td>
+            <td style="padding:0.9rem 1rem;">
+                <div style="font-weight:500;">${formattedDate}</div>
+                <div style="font-size:0.78rem; color:var(--text-secondary);">${formattedTime}</div>
+            </td>
+            <td style="padding:0.9rem 1rem;">
+                <div style="font-weight:600;">${p.customer_name || 'Walk-in'}</div>
+                <div style="font-size:0.78rem; color:var(--text-secondary); max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${p.item_summary || ''}">${p.item_summary || 'Order Items'}</div>
+            </td>
+            <td style="padding:0.9rem 1rem;">
+                <a href="tel:${p.customer_phone}" style="color:#93c5fd; text-decoration:none; font-family:monospace; font-size:0.9rem;">
+                    <i class="fa-solid fa-phone" style="font-size:0.75rem; opacity:0.7;"></i> ${p.customer_phone || 'N/A'}
+                </a>
+            </td>
+            <td style="padding:0.9rem 1rem;">
+                <span style="background:rgba(255,255,255,0.08); border-left:3px solid ${badgeColor}; padding:0.25rem 0.6rem; border-radius:4px; font-size:0.8rem; font-weight:600; display:inline-block; max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${p.payment_method}">
+                    ${p.payment_method || 'Cash'}
+                </span>
+            </td>
+            <td style="padding:0.9rem 1rem;">
+                <strong style="color:#10b981; font-size:0.98rem;">₹${parseFloat(p.total_amount).toFixed(2)}</strong>
+            </td>
+            <td style="padding:0.9rem 1rem; text-align:right;">
+                <button class="btn-secondary btn-view-bill-receipt" data-order-id="${p.order_id}" style="padding:0.35rem 0.75rem; font-size:0.8rem; display:inline-flex; align-items:center; gap:0.35rem;" title="View & Print Bill Receipt">
+                    <i class="fa-solid fa-receipt"></i> Bill
+                </button>
+            </td>
+        `;
+
+        const billBtn = tr.querySelector('.btn-view-bill-receipt');
+        if (billBtn) {
+            billBtn.addEventListener('click', () => {
+                displayReceipt(p.order_id);
+            });
+        }
+
+        tbody.appendChild(tr);
+    });
+}
+window.loadPaymentHistory = loadPaymentHistory;
 
 // Modal Actions
 document.querySelectorAll('.close-modal').forEach(btn => {
@@ -1386,6 +1498,18 @@ function showToast(message, type = 'success') {
     }, 4000);
 }
 
+function parseOrderTimestamp(dateStr) {
+    if (!dateStr) return new Date();
+    // SQLite CURRENT_TIMESTAMP returns "YYYY-MM-DD HH:MM:SS" in UTC
+    if (typeof dateStr === 'string' && !dateStr.includes('T') && !dateStr.endsWith('Z')) {
+        const utcStr = dateStr.replace(' ', 'T') + 'Z';
+        const parsed = new Date(utcStr);
+        if (!isNaN(parsed.getTime())) return parsed;
+    }
+    const fallback = new Date(dateStr);
+    return isNaN(fallback.getTime()) ? new Date() : fallback;
+}
+
 async function loadActiveOrders() {
     try {
         const res = await fetch(`${API_URL}/orders/active`);
@@ -1393,6 +1517,7 @@ async function loadActiveOrders() {
         
         const orders = await res.json();
         const grid = document.getElementById('active-orders-grid');
+        if (!grid) return;
         grid.innerHTML = '';
         
         if (orders.length === 0) {
@@ -1417,10 +1542,14 @@ async function loadActiveOrders() {
                 <ul style="padding-left:1.2rem; margin:0.5rem 0; width:100%; font-size:0.9rem;">
                     ${order.items.map(i => `<li>${i.quantity}x ${i.item_name}</li>`).join('')}
                 </ul>
-                <button class="btn-primary" style="margin-top:auto; width:100%; align-self:center;" onclick="markDelivered(${order.order_id})">
+                <button class="btn-primary btn-mark-delivered" style="margin-top:auto; width:100%; align-self:center;" data-order-id="${order.order_id}">
                     <i class="fa-solid fa-check"></i> Mark Delivered
                 </button>
             `;
+            const delBtn = el.querySelector('.btn-mark-delivered');
+            if (delBtn) {
+                delBtn.addEventListener('click', () => markDelivered(order.order_id));
+            }
             grid.appendChild(el);
         });
 
@@ -1430,8 +1559,8 @@ async function loadActiveOrders() {
         // Update local timers every second
         trackingInterval = setInterval(() => {
             updateOrderTimers();
-            // Poll for fresh orders every 10 seconds
-            if (new Date().getSeconds() % 10 === 0) {
+            // Poll for fresh orders every 5 seconds
+            if (new Date().getSeconds() % 5 === 0) {
                fetchFreshActiveOrdersSilent();
             }
         }, 1000);
@@ -1439,7 +1568,7 @@ async function loadActiveOrders() {
         updateOrderTimers();
 
     } catch (err) {
-        console.error(err);
+        console.error('Error loading active orders:', err);
     }
 }
 
@@ -1449,12 +1578,7 @@ async function fetchFreshActiveOrdersSilent() {
         if (!res.ok) return;
         const freshOrders = await res.json();
         
-        // Instead of clobbering the whole DOM, we can just do a full reload if the lengths differ
-        // Or simple version: just reload if there are newly pending orders. 
-        // For Cafe KDS, full reloading is fine because the staff only click 'Mark Delivered' which will refresh.
-        // We'll just softly call loadActiveOrders() if it's the active tab.
-        if (trackingWorkspace.classList.contains('active')) {
-             // Only reload if order length differs to prevent flashing, or just fetch the data and compare
+        if (trackingWorkspace && trackingWorkspace.classList.contains('active')) {
              const currentNodes = document.querySelectorAll('#active-orders-grid .metric-card');
              if (freshOrders.length !== currentNodes.length) {
                  loadActiveOrders();
@@ -1471,25 +1595,25 @@ function updateOrderTimers() {
 
     badges.forEach(badge => {
         const orderId = parseInt(badge.getAttribute('data-order-id'));
-        const orderTime = new Date(badge.getAttribute('data-time'));
+        const orderTime = parseOrderTimestamp(badge.getAttribute('data-time'));
         const diffMs = now - orderTime;
 
-        if (diffMs < 0) return; // Order time is slightly in the future due to server clock sync
+        if (diffMs < 0) {
+            badge.innerText = '00:00';
+            return;
+        }
 
         const diffSecs = Math.floor(diffMs / 1000);
         const mins = Math.floor(diffSecs / 60);
         const secs = diffSecs % 60;
 
-        // ✅ AUTO-DELIVER after 10 minutes
-        if (mins >= 10 && orderId && !autoDeliveredOrders.has(orderId)) {
+        // Auto-deliver after 15 minutes of elapsed time
+        if (mins >= 15 && orderId && !autoDeliveredOrders.has(orderId)) {
             autoDeliveredOrders.add(orderId);
-            badge.innerText = '10:00';
+            badge.innerText = '15:00';
             badge.style.color = 'var(--danger)';
 
-            // Show delivery successful toast
-            showToast(`🎉 Order #${orderId} — Delivery Successful!`);
-
-            // Auto mark as delivered on backend
+            showToast(`🎉 Order #${orderId} — Auto Delivered!`);
             markDelivered(orderId);
             return;
         }
@@ -1499,13 +1623,12 @@ function updateOrderTimers() {
             badge.style.color = 'var(--danger)';
         } else {
             badge.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-            // Color coding for urgency
             if (mins >= 10) {
-                badge.style.color = 'var(--danger)'; // Red for > 10 mins
+                badge.style.color = 'var(--danger)';
             } else if (mins >= 5) {
-                badge.style.color = '#f59e0b'; // Orange for > 5 mins
+                badge.style.color = '#f59e0b';
             } else {
-                badge.style.color = 'var(--primary-color)'; // Default
+                badge.style.color = 'var(--primary-color)';
             }
         }
     });
@@ -1518,15 +1641,16 @@ async function markDelivered(orderId) {
         });
         const data = await res.json();
         if (res.ok) {
-            console.log(`Order ${orderId} delivered in ${data.delivery_stats.time_taken_seconds} seconds.`);
-            loadActiveOrders(); // Refresh table
+            showToast(`✅ Order #${orderId} delivered!`);
+            loadActiveOrders();
         } else {
-            alert('Failed to update: ' + data.error);
+            alert('Failed to update: ' + (data.error || 'Unknown error'));
         }
     } catch(err) {
-        console.error(err);
+        console.error('Error delivering order:', err);
     }
 }
+window.markDelivered = markDelivered;
 
 // Menu Management Logic
 const menuModal = document.getElementById('menu-modal');
@@ -1540,20 +1664,28 @@ async function loadMenuMgmt() {
         const tbody = document.getElementById('mgmt-menu-tbody');
         tbody.innerHTML = '';
         
+        const adminActive = isAdmin();
         items.forEach(item => {
             const tr = document.createElement('tr');
             tr.style.borderBottom = '1px solid rgba(255,255,255,0.1)';
+            const actionButtonsHtml = adminActive ? `
+                <button class="btn-secondary btn-edit-item" data-id="${item.item_id}" data-name="${item.item_name.replace(/"/g, '&quot;')}" data-price="${item.price}" data-image="${(item.image_url || '').replace(/"/g, '&quot;')}" style="padding:0.4rem 0.8rem; font-size:0.8rem; margin-right:0.4rem;" title="Edit Item (Admin Required)">
+                    <i class="fa-solid fa-pen"></i> Edit
+                </button>
+                <button class="btn-primary btn-del-item" data-id="${item.item_id}" data-name="${item.item_name.replace(/"/g, '&quot;')}" style="padding:0.4rem 0.8rem; font-size:0.8rem; background:var(--danger); border-color:var(--danger);" title="Delete Item (Admin Required)">
+                    <i class="fa-solid fa-trash"></i> Delete
+                </button>
+            ` : ``;
+            const iconSrc = getIconForMenu(item.item_name, item.image_url);
             tr.innerHTML = `
                 <td style="padding:1rem;">${item.item_id}</td>
-                <td style="padding:1rem; font-weight:600;">${item.item_name}</td>
+                <td style="padding:1rem; font-weight:600; display:flex; align-items:center; gap:0.8rem;">
+                    <img referrerpolicy="no-referrer" src="${iconSrc}" alt="${item.item_name}" style="width:36px; height:36px; border-radius:6px; object-fit:cover; border:1px solid rgba(255,255,255,0.15);" onerror="this.src='https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=400&q=80'">
+                    <span>${item.item_name}</span>
+                </td>
                 <td style="padding:1rem; color:var(--accent-color); font-weight:700;">₹${parseFloat(item.price).toFixed(2)}</td>
                 <td style="padding:1rem; text-align:right;">
-                    <button class="btn-secondary btn-edit-item" data-id="${item.item_id}" data-name="${item.item_name.replace(/"/g, '&quot;')}" data-price="${item.price}" style="padding:0.4rem 0.8rem; font-size:0.8rem; margin-right:0.4rem;" title="Edit Item (Admin Required)">
-                        <i class="fa-solid fa-pen"></i> Edit
-                    </button>
-                    <button class="btn-primary btn-del-item" data-id="${item.item_id}" data-name="${item.item_name.replace(/"/g, '&quot;')}" style="padding:0.4rem 0.8rem; font-size:0.8rem; background:var(--danger); border-color:var(--danger);" title="Delete Item (Admin Required)">
-                        <i class="fa-solid fa-trash"></i> Delete
-                    </button>
+                    ${actionButtonsHtml}
                 </td>
             `;
             tbody.appendChild(tr);
@@ -1565,7 +1697,8 @@ async function loadMenuMgmt() {
                 const id = btn.getAttribute('data-id');
                 const name = btn.getAttribute('data-name');
                 const price = btn.getAttribute('data-price');
-                promptAdminAuth(() => openMenuModal(id, name, price));
+                const image = btn.getAttribute('data-image');
+                promptAdminAuth(() => openMenuModal(id, name, price, image));
             });
         });
 
@@ -1586,11 +1719,115 @@ document.getElementById('add-menu-btn').addEventListener('click', () => {
 
 document.getElementById('close-menu-modal').addEventListener('click', () => menuModal.classList.add('hidden'));
 
-function openMenuModal(id = '', name = '', price = '') {
+function updateModalPreview() {
+    const name = (document.getElementById('menu-item-name').value || '').trim();
+    let customImg = (document.getElementById('menu-item-image').value || '').trim();
+    const previewEl = document.getElementById('menu-item-preview');
+    const statusEl = document.getElementById('menu-item-preview-status');
+    const titleEl = document.getElementById('menu-item-preview-title');
+
+    if (!previewEl) return;
+
+    if (customImg) {
+        if (customImg.startsWith('//')) {
+            customImg = 'https:' + customImg;
+        }
+
+        // Test if this is likely a webpage/article URL rather than a direct image file
+        const lowerUrl = customImg.toLowerCase().split('?')[0];
+        const isHtmlPage = lowerUrl.endsWith('.html') || lowerUrl.endsWith('.htm') || lowerUrl.endsWith('/');
+        // Also check: URL has no image extension AND is not a known image CDN
+        const hasImageExt = /\.(jpg|jpeg|png|webp|gif|svg|avif|bmp|tiff?)$/i.test(lowerUrl);
+        const isKnownImageCDN = lowerUrl.includes('images.unsplash.com')
+            || lowerUrl.includes('unsplash.com/photo')
+            || lowerUrl.includes('cloudinary.com')
+            || lowerUrl.includes('imgur.com')
+            || lowerUrl.includes('pexels.com')
+            || lowerUrl.includes('pixabay.com')
+            || lowerUrl.includes('googleusercontent.com')
+            || lowerUrl.includes('wp-content/uploads')
+            || customImg.startsWith('data:image/');
+        const isWebpageUrl = isHtmlPage || (!hasImageExt && !isKnownImageCDN);
+
+        if (titleEl) titleEl.innerText = "Custom Image Link";
+
+        if (isWebpageUrl) {
+            const fallback = getIconForMenu(name, '');
+            previewEl.src = fallback;
+            if (statusEl) {
+                statusEl.innerHTML = "⚠️ This looks like a <strong>webpage link</strong>, not a direct image.<br>🔍 <em>Right-click the image → 'Copy image address'</em> and paste that instead.";
+                statusEl.style.color = "#f87171";
+            }
+            return;
+        }
+
+        if (statusEl) {
+            statusEl.innerText = "Loading image...";
+            statusEl.style.color = "var(--accent-color)";
+        }
+        
+        let imgTested = new Image();
+        imgTested.referrerPolicy = "no-referrer";
+        imgTested.onload = () => {
+            if ((document.getElementById('menu-item-image').value || '').trim() === customImg) {
+                previewEl.src = customImg;
+                if (statusEl) {
+                    statusEl.innerText = "✓ Custom image loaded successfully!";
+                    statusEl.style.color = "#4ade80";
+                }
+            }
+        };
+
+        imgTested.onerror = () => {
+            if ((document.getElementById('menu-item-image').value || '').trim() === customImg) {
+                const fallback = getIconForMenu(name, '');
+                previewEl.src = fallback;
+                if (statusEl) {
+                    statusEl.innerHTML = "⚠️ Unable to load this direct link. Right-click picture &amp; choose <em>'Copy image address'</em>.";
+                    statusEl.style.color = "#fbbf24";
+                }
+            }
+        };
+
+        imgTested.src = customImg;
+    } else {
+        const autoSrc = getIconForMenu(name, '');
+        previewEl.onload = null;
+        previewEl.onerror = () => {
+            previewEl.src = 'https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=400&q=80';
+        };
+        previewEl.src = autoSrc;
+
+        if (titleEl) titleEl.innerText = name ? "Auto-Matched Photo" : "Default Photo";
+        if (statusEl) {
+            statusEl.innerText = name 
+                ? `Auto-matched for "${name}". Paste link above to override.`
+                : "Type an item name or paste an image link address.";
+            statusEl.style.color = "var(--text-secondary)";
+        }
+    }
+}
+
+const nameInput = document.getElementById('menu-item-name');
+const imgInput = document.getElementById('menu-item-image');
+if (nameInput) {
+    ['input', 'keyup', 'change'].forEach(evt => nameInput.addEventListener(evt, updateModalPreview));
+}
+if (imgInput) {
+    ['input', 'keyup', 'change', 'blur'].forEach(evt => imgInput.addEventListener(evt, updateModalPreview));
+    imgInput.addEventListener('paste', () => {
+        setTimeout(updateModalPreview, 10);
+        setTimeout(updateModalPreview, 100);
+    });
+}
+
+function openMenuModal(id = '', name = '', price = '', imageUrl = '') {
     document.getElementById('menu-modal-title').innerText = id ? 'Edit Menu Item' : 'Add Menu Item';
     document.getElementById('menu-item-id').value = id;
     document.getElementById('menu-item-name').value = name;
     document.getElementById('menu-item-price').value = price;
+    document.getElementById('menu-item-image').value = imageUrl || '';
+    updateModalPreview();
     menuModal.classList.remove('hidden');
 }
 
@@ -1598,7 +1835,21 @@ document.getElementById('save-menu-btn').addEventListener('click', async () => {
     const id = document.getElementById('menu-item-id').value;
     const name = document.getElementById('menu-item-name').value.trim();
     const price = document.getElementById('menu-item-price').value;
-    
+    const customImageVal = document.getElementById('menu-item-image').value.trim();
+
+    // Determine what image URL to store:
+    // If the user pasted a URL, validate it's actually an image link (not a webpage)
+    let imageUrl = '';
+    if (customImageVal) {
+        const resolvedFromCustom = getIconForMenu(name, customImageVal);
+        // If getIconForMenu returned the custom URL directly, it passed image validation
+        const isValidImageLink = resolvedFromCustom === customImageVal
+            || resolvedFromCustom === 'https:' + customImageVal.replace(/^\/\//, '');
+        imageUrl = isValidImageLink ? customImageVal : getIconForMenu(name, '');
+    } else {
+        imageUrl = getIconForMenu(name, '');
+    }
+
     if (!name || !price) {
         alert("Please enter both name and price");
         return;
@@ -1615,7 +1866,7 @@ document.getElementById('save-menu-btn').addEventListener('click', async () => {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({ item_name: name, price: parseFloat(price) })
+            body: JSON.stringify({ item_name: name, price: parseFloat(price), image_url: imageUrl })
         });
         const data = await res.json();
         if (data.success) {
@@ -1625,7 +1876,7 @@ document.getElementById('save-menu-btn').addEventListener('click', async () => {
             fetchMenu(); // refresh POS grid globally!
         } else if (res.status === 401 || res.status === 403) {
             menuModal.classList.add('hidden');
-            promptAdminAuth(() => openMenuModal(id, name, price));
+            promptAdminAuth(() => openMenuModal(id, name, price, imageUrl));
         } else {
             alert("Error: " + (data.error || "Failed to save menu item"));
         }
