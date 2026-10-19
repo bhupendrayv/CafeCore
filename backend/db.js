@@ -59,6 +59,13 @@ function initDB() {
         );
     `);
 
+    // Ensure image_url column exists in Menu table
+    const menuColumns = db.prepare("PRAGMA table_info(Menu)").all();
+    const hasImageCol = menuColumns.some(col => col.name === 'image_url');
+    if (!hasImageCol) {
+        db.exec("ALTER TABLE Menu ADD COLUMN image_url TEXT");
+    }
+
     // Seed default staff if empty
     const staffCount = db.prepare('SELECT COUNT(*) as count FROM Staff').get();
     if (staffCount.count === 0) {
